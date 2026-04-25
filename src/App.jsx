@@ -100,12 +100,12 @@ export default function App() {
     : 'from-blue-50 to-blue-200'
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${bgColor} flex flex-col items-center justify-start pt-16 px-4`}>
+    <div className={`relative min-h-screen bg-gradient-to-br ${bgColor} flex flex-col items-center justify-start pt-12 px-4 pb-10`}>
 
       {/* Dark mode toggle button */}
       <button
         onClick={(() => setDarkMode(!darkMode))}
-        className="absolute top-4 right-4 px-4 py-2 rounded-lg font-semibold
+        className="absolute top-4 right-4 px-3 py-1.5 rounded-lg font-semibold
         text-sm cursor-pointer transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300"
       >
         {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
@@ -115,10 +115,12 @@ export default function App() {
       <ParticleEffect description={weather ? weather.description : ""} />
 
       {/* App Title */}
-      <h1 className="text-4x1 font-bold text-blue-900 mb-2">
+      <h1 className={`text-4x1 sm:text-4x1 font-bold mb-2 text-center ${darkMode ? 'text-white' : 'text-blue-900'} mb-2`}>
         Weather Dashboard
       </h1>
-      <p className="text-gray-500 mb-8">Search any city in the world</p>
+      <p className={`text-sm sm:text-base mb-6 text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+        Search any city in the world
+      </p>
 
       {/* Search bar - onSearch prop passes the function down */}
       <SearchBar onSearch={handleSearch} />
@@ -128,25 +130,28 @@ export default function App() {
         <p className="text-blue-600 mt-6 animate-pulse">Loading...</p>
       )}
 
-      {/* Error message - only shows if error is not empty */}
-      <ErrorMessage message={error} />
-
-      {/* Weather card - only shows if weather data exists */}
-      <WeatherCard data={weather} />
+      <div className="w-full max-w-md px-2">
+        <ErrorMessage message={error} />
+        <WeatherCard data={weather} darkMode={darkMode}/>
+      </div>
 
       {/* ✅ Toggle button — only shows after a successful search */}
       {forecast.length > 0 && (
         <button
           onClick={() => setShowForecast(!showForecast)}
           className="mt-6 px-6 py-2 bg-blue-600 text-white font-semibold
-          rounded-lg hover:bg-blue-700 cursor-pointer transition-colors"
+          rounded-lg hover:bg-blue-700 cursor-pointer transition-colors z-10"
         >
           {showForecast ? "Hide Forecast" : "Show 5-Day Forecast"}
         </button>
       )}
 
       {/* ✅ Forecast — only shows when button is toggled on */}
-      {showForecast && <Forecast forecast={forecast} />}
+      {showForecast && (
+        <div className="w-full max-w-md px-2">
+          <Forecast forecast={forecast} darkMode={darkMode} />
+        </div>
+      )}
 
     </div>
   )

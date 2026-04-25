@@ -1,27 +1,38 @@
-function Forecast({ forecast }) {
-    if (!forecast || forecast.length === 0) return null
+function Forecast({ forecast, darkMode }) {
+  if (!forecast || forecast.length === 0) return null
 
-    return (
-        <div className="w-full max-w-md mt-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-3">5-Day Forecast</h3>
-            <div classname="grid grid-cols-5 gap-2">
-                {forecast.map((day, index) => {
-                    return (
-                    <div key={index} classname="bg-white rounded-x1 shadow p-3 flex flex-col items-center">
-                        <p className="text-xs text-gray-400 font-medium">{day.date}</p>
-                        <img
-                            src={`https://openweathermap.org/img/wn/${day.icon}.png`}
-                            alt={day.description}
-                            className="w-10 h-10"
-                        />
-                        <p className="text-sm font-bold text-blue-600">{day.high}°</p>
-                        <p className="text-xs text-gray-400">{day.low}°</p>
-                    </div>
-                    )
-                })}
+  return (
+    <div className="w-full mt-6">
+      <h3 className={`text-base sm:text-lg font-semibold mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+        5-Day Forecast
+      </h3>
+      <div className="grid grid-cols-5 gap-1 sm:gap-2">
+        {forecast.map(function(day, index) {
+          return (
+            <div key={index} className={`${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}
+            rounded-xl shadow p-2 sm:p-3 flex flex-col items-center`}>
+              <p className={`text-xs font-medium text-center leading-tight ${darkMode ? 'text-gray-400' : 'text-gray-400'}`}>
+                {/* Show shorter date on mobile */}
+                <span className="hidden sm:inline">{day.date}</span>
+                <span className="sm:hidden">{day.date.split(",")[0]}</span>
+              </p>
+              <img
+                src={`https://openweathermap.org/img/wn/${day.icon}.png`}
+                alt={day.description}
+                className="w-8 h-8 sm:w-10 sm:h-10"
+              />
+              <p className={`text-xs sm:text-sm font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                {day.high}°
+              </p>
+              <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-400'}`}>
+                {day.low}°
+              </p>
             </div>
-        </div>
-    )
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 export default Forecast

@@ -50,6 +50,8 @@ export default function App() {
         humidity: data.main.humidity,
         wind: Math.round(data.wind.speed),
         description: data.weather[0].description,
+        // Inside setWeather({...}), add this line:
+        icon: data.weather[0].icon,
       })
 
     } catch (err) {
@@ -60,11 +62,16 @@ export default function App() {
     }
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100
-    flex flex-col items-center justify-start pt-16 px-4">
+  // Dynamic bakcground color based on temperature
+  const bgColor = !weather ? 'from-blue-50 to-blue-100'
+    : weather.temp >= 80 ? 'from-orange-50 to-orange-100'
+    : weather.temp >= 60 ? 'from-yellow-50 to-yellow-100'
+    : 'from-blue-50 to-blue-200'
 
-      {/* App Ttitle */}
+  return (
+    <div className={`min-h-screen bg-gradient-to-br ${bgColor} flex flex-col items-center justify-start pt-16 px-4`}>
+
+      {/* App Title */}
       <h1 className="text-4x1 font-bold text-blue-900 mb-2">
         Weather Dashboard
       </h1>
@@ -83,7 +90,7 @@ export default function App() {
 
       {/* Weather card - only shows if weather data exists */}
       <WeatherCard data={weather} />
-      
+
     </div>
   )
 }

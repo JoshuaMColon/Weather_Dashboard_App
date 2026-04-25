@@ -10,6 +10,12 @@ function WeatherCard({ data }) {
   return (
     <div className="bg-white rounded-2x1 shadow-lg p-8 w-full max-w-md mt-6">
 
+        <img
+           src={`https://openweathermap.org/img/wn/${data.icon}@2x.png`}
+           alt={data.description}
+           className="w-20 h-20 -mb-2"
+        />
+        
         {/* City name and country */}
         <h2 className="text-3x1 font-bold text-gray-800">
             {data.city}

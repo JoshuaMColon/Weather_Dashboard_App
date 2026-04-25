@@ -1,3 +1,4 @@
+import { useState } from "react"
 // SearchBar.jsx
 // This component handles user input for city search
 
@@ -6,7 +7,7 @@ function SearchBar({ onSearch }) {
 
     // useState holds the current text the user has typed
     // city = the current value. setCity = function to change it
-    const [city, setCity] = React.useState("")
+    const [city, setCity] = useState("")
 
     function handleSearch() {
         if (city.trim() === '') return // don't search empty input

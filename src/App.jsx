@@ -20,6 +20,7 @@ export default function App() {
   const [loading, setLoading] = useState(false)
 
   const [forecast, setForecast] = useState([])
+  const [showForecast, setShowForecast] = useState(false)
 
   // This function runs when the user clicks Search
   // async = this function contsains await (waits for data)
@@ -28,6 +29,7 @@ export default function App() {
     setError("")       // clear any previous error
     setWeather(null)  // clear previous weather
     setForecast([])   // clear previous forecast
+    setShowForecast(false) // hide forecast until new data loads
     setLoading(true) //show loading state
 
     try {
@@ -114,8 +116,19 @@ export default function App() {
       {/* Weather card - only shows if weather data exists */}
       <WeatherCard data={weather} />
 
-      {/* Forecast - only shows if forecast data exists */}
-      <Forecast forecast={forecast} />
+      {/* ✅ Toggle button — only shows after a successful search */}
+      {forecast.length > 0 && (
+        <button
+          onClick={() => setShowForecast(!showForecast)}
+          className="mt-6 px-6 py-2 bg-blue-600 text-white font-semibold
+          rounded-lg hover:bg-blue-700 cursor-pointer transition-colors"
+        >
+          {showForecast ? "Hide Forecast" : "Show 5-Day Forecast"}
+        </button>
+      )}
+
+      {/* ✅ Forecast — only shows when button is toggled on */}
+      {showForecast && <Forecast forecast={forecast} />}
 
     </div>
   )

@@ -1,1 +1,70 @@
 @import "tailwindcss";
+
+/* Raindrop animation */
+@keyframes rain {
+  0% { transform: translateY(-100px); opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0.3; }
+}
+
+/* Snowflake animation */
+@keyframes snow {
+  0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(360deg); opacity: 0.3; }
+}
+
+/* Sun pulse animation */
+@keyframes pulse-sun {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+/* Sun ray rotation */
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg);}
+}
+
+/* Cloud drift animation */
+@keyframes drift {
+  0% { transform: translateX(-200px); opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.6; }
+  100% { transform: translateX(110vw); opacity: 0; }
+}
+
+/* Lightning flash */
+@keyframes lightning {
+  0%, 90%, 100% { opacity: 0; }
+  92%, 96% { opacity: 1;}
+  94%, 98% { opacity: 0; }
+}
+
+.raindrop {
+  position: absolute;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, transparent, #93c5fd);
+  animation: rain linear infinite;
+}
+
+.snowflake {
+  position: absolute;
+  color: white;
+  animation: snow linear infinite;
+  user-select: none;
+}
+
+.cloud {
+  position: absolute;
+  font-size: 4rem;
+  animation: drift linear infinite;
+  user-select: none;
+}
+
+.lightning {
+  position: fixed;
+  inset: 0;
+  background: white;
+  animation: lightning 3s infinite;
+  pointer-events: none;
+}

@@ -3,6 +3,7 @@ import SearchBar from "./components/SearchBar"
 import WeatherCard from "./components/WeatherCard"
 import ErrorMessage from "./components/ErrorMessage"
 import Forecast from "./components/Forecast"
+import WeatherEffect from "./components/WeatherEffect"
 import "./index.css"
 
 // PASTE API KEY HERE -from openweathermap.org
@@ -95,6 +96,9 @@ export default function App() {
 
   return (
     <div className={`min-h-screen bg-gradient-to-br ${bgColor} flex flex-col items-center justify-start pt-16 px-4`}>
+
+      {/* Weather effects */}
+      <WeatherEffect description={weather ? weather.description : ""} />
 
       {/* App Title */}
       <h1 className="text-4x1 font-bold text-blue-900 mb-2">

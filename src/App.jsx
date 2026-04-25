@@ -61,7 +61,7 @@ export default function App() {
       // Fetch 5-day forecast
       const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${API_KEY}&units=imperial`
       const forecastRes = await fetch(forecastUrl)
-      const forecastData = await forecastRes.jscon()
+      const forecastData = await forecastRes.json()
 
       // Filter to one entry per day at noon
       const daily = forecastData.list.filter(item => item.dt_txt.includes("12:00:00")

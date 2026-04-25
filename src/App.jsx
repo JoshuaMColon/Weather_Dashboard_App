@@ -77,7 +77,8 @@ export default function App() {
        
     
     } catch (err) {
-      setError("Something went wrong. Check you internet connection.")
+      console.log("Error: ", err)
+      setError("Something went wrong. Check your internet connection.")
 
     } finally {
       setLoading(false) // always stop loading, success or fail

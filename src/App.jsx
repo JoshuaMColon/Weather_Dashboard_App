@@ -23,6 +23,8 @@ export default function App() {
   const [forecast, setForecast] = useState([])
   const [showForecast, setShowForecast] = useState(false)
 
+  const [darkMode, setDarkMode] = useState(false)
+
   // This function runs when the user clicks Search
   // async = this function contsains await (waits for data)
   async function handleSearch(city) {
@@ -89,13 +91,24 @@ export default function App() {
   }
 
   // Dynamic bakcground color based on temperature
-  const bgColor = !weather ? 'from-blue-50 to-blue-100'
+  const bgColor = darkMode 
+    ? 'from-gray-900 to-gray-800'
+    : !weather ? 'from-blue-50 to-blue-100'
     : weather.temp >= 80 ? 'from-orange-50 to-orange-100'
     : weather.temp >= 60 ? 'from-yellow-50 to-yellow-100'
     : 'from-blue-50 to-blue-200'
 
   return (
     <div className={`min-h-screen bg-gradient-to-br ${bgColor} flex flex-col items-center justify-start pt-16 px-4`}>
+
+      {/* Dark mode toggle button */}
+      <button
+        onClick={(() => setDarkMode(!darkMode))}
+        className="absolute top-4 right-4 px-4 py-2 rounded-lg font-semibold
+        text-sm cursor-pointer transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300"
+      >
+        {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
+      </button>
 
       {/* Weather effects */}
       <WeatherEffect description={weather ? weather.description : ""} />

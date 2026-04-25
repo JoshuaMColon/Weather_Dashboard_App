@@ -2,6 +2,7 @@ import { useState } from "react"
 import SearchBar from "./components/SearchBar"
 import WeatherCard from "./components/WeatherCard"
 import ErrorMessage from "./components/ErrorMessage"
+import Forecast from "./components/Forecast"
 import "./index.css"
 
 // PASTE API KEY HERE -from openweathermap.org
@@ -18,12 +19,15 @@ export default function App() {
   // State: true while waiting for API response
   const [loading, setLoading] = useState(false)
 
+  const [forecast, setForecast] = useState([])
+
   // This function runs when the user clicks Search
   // async = this function contsains await (waits for data)
   async function handleSearch(city) {
 
     setError("")       // clear any previous error
     setWeather(null)  // clear previous weather
+    setForecast([])   // clear previous forecast
     setLoading(true) //show loading state
 
     try {
@@ -54,6 +58,24 @@ export default function App() {
         icon: data.weather[0].icon,
       })
 
+      // Fetch 5-day forecast
+      const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${API_KEY}&units=imperial`
+      const forecastRes = await fetch(forecastUrl)
+      const forecastData = await forecastRes.jscon()
+
+      // Filter to one entry per day at noon
+      const daily = forecastData.list.filter(item => item.dt_txt.includes("12:00:00")
+    )
+
+    setForecast(daily.map(day => ({
+      date: new Date(day.dt_txt).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }),
+      high: Math.round(day.main.temp_max),
+      low: Math.round(day.main.temp_min),
+      description: day.weather[0].description,
+      icon: day.weather[0].icon,
+    })))
+       
+    
     } catch (err) {
       setError("Something went wrong. Check you internet connection.")
 
@@ -90,6 +112,9 @@ export default function App() {
 
       {/* Weather card - only shows if weather data exists */}
       <WeatherCard data={weather} />
+
+      {/* Forecast - only shows if forecast data exists */}
+      <Forecast forecast={forecast} />
 
     </div>
   )

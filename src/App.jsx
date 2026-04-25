@@ -3,7 +3,7 @@ import SearchBar from "./components/SearchBar"
 import WeatherCard from "./components/WeatherCard"
 import ErrorMessage from "./components/ErrorMessage"
 import Forecast from "./components/Forecast"
-import WeatherEffect from "./components/WeatherEffect"
+import ParticleEffect from "./components/ParticleEffect"
 import "./index.css"
 
 // PASTE API KEY HERE -from openweathermap.org
@@ -62,6 +62,7 @@ export default function App() {
         // Inside setWeather({...}), add this line:
         icon: data.weather[0].icon,
       })
+      console.log("Weather description:", data.weather[0].description)
 
       // Fetch 5-day forecast
       const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${API_KEY}&units=imperial`
@@ -111,7 +112,7 @@ export default function App() {
       </button>
 
       {/* Weather effects */}
-      <WeatherEffect description={weather ? weather.description : ""} />
+      <ParticleEffect description={weather ? weather.description : ""} />
 
       {/* App Title */}
       <h1 className="text-4x1 font-bold text-blue-900 mb-2">

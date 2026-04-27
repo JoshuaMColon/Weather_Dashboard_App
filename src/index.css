@@ -26,10 +26,11 @@
 
 /* Cloud drift animation */
 @keyframes drift {
-  0% { transform: translateX(-200px); opacity: 0; }
-  10% { opacity: 0.6; }
-  90% { opacity: 0.6; }
-  100% { transform: translateX(110vw); opacity: 0; }
+  0% { transform: translateX(0); opacity: 0; }
+  10% { opacity: 0.45; }
+  15% { opacity: 0.55; }
+  85% { opacity: 0.55; }
+  100% { transform: translateX(145vw); opacity: 0; }
 }
 
 /* Lightning flash */
@@ -40,8 +41,39 @@
 }
 
 @keyframes beam-pulse {
-  0% { opacity: 0.2; }
-  100% { opacity: 0.5; }
+  0% {
+    opacity: 0.4;
+    filter: blur(1.4px);
+    box-shadow: 0 0 12px rgba(253,224,71,0.18);
+  }
+  40% {
+    opacity: 1;
+    filter: blur(0.2px);
+    box-shadow: 0 0 56px rgba(253,224,71,0.65);
+  }
+  60% {
+    opacity: 0.9;
+    filter: blur(0.3px);
+    box-shadow: 0 0 48px rgba(253,224,71,0.58);
+  }
+  100% {
+    opacity: 0.4;
+    filter: blur(1.4px);
+    box-shadow: 0 0 12px rgba(253,224,71,0.18);
+  }
+}
+
+.mist-cloud {
+  position: absolute;
+  width: 340px;
+  height: 120px;
+  border-radius: 140px;
+  background: radial-gradient(circle at 30% 45%, rgba(248,250,252,1), rgba(148,163,184,0.55) 38%, transparent 62%),
+              radial-gradient(circle at 60% 50%, rgba(248,250,252,0.98), rgba(148,163,184,0.45) 46%, transparent 76%);
+  filter: blur(6px);
+  box-shadow: 0 0 80px rgba(148,163,184,0.35);
+  opacity: 0.9;
+  pointer-events: none;
 }
 
 .raindrop {

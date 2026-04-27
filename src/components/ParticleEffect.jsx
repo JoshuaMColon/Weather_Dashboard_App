@@ -104,21 +104,24 @@ function ParticleEffect({ description }) {
   if (desc.includes("clear") || desc.includes("sunny")) {
     return (
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        {[...Array(6)].map(function(_, i) {
+        {[...Array(12)].map(function(_, i) {
           return (
             <div
               key={i}
               style={{
                 position: "absolute",
-                top: "-10%",
-                right: "-5%",
-                width: "3px",
-                height: "120vh",
-                background: "linear-gradient(to bottom, rgba(253,224,71,0.6), transparent)",
-                transformOrigin: "top right",
-                transform: `rotate(${170 + i * 8}deg)`,
-                opacity: 0.4,
-                animation: `beam-pulse ${2 + i * 0.4}s ease-in-out infinite alternate`,
+                top: "-16%",
+                left: `${-28 + i * 1.4}%`,
+                width: `${14 + (i % 4) * 4}px`,
+                height: "240vh",
+                background: "linear-gradient(180deg, rgba(253,224,71,1), transparent 70%)",
+                transformOrigin: "top left",
+                transform: `rotate(${14 + i * 3.4}deg)`,
+                opacity: 0.82 + (i % 2) * 0.05,
+                animation: `beam-pulse ${0.9 + i * 0.08}s ease-in-out infinite alternate`,
+                filter: "blur(1.2px)",
+                boxShadow: "0 0 28px rgba(255,255,255,0.22), 0 0 26px rgba(253,224,71,0.45)",
+                borderLeft: "1px solid rgba(255,255,255,0.2)",
               }}
             />
           )
@@ -126,13 +129,15 @@ function ParticleEffect({ description }) {
         <div
           style={{
             position: "absolute",
-            top: "-60px",
-            right: "-60px",
-            width: "200px",
-            height: "200px",
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(253,224,71,0.8), rgba(251,191,36,0.3), transparent)",
-            animation: "pulse-sun 3s ease-in-out infinite",
+            top: "-30px",
+            left: "-32px",
+            width: "420px",
+            height: "260vh",
+            background: "linear-gradient(180deg, rgba(253,224,71,0.62), transparent 42%)",
+            transform: "rotate(22deg)",
+            opacity: 0.78,
+            filter: "blur(16px)",
+            boxShadow: "0 0 60px rgba(255,255,255,0.18)",
           }}
         />
       </div>
@@ -145,49 +150,21 @@ function ParticleEffect({ description }) {
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         {[...Array(6)].map(function(_, i) {
           const top = 5 + i * 12
-          const duration = 25 + i * 10
-          const delay = i * 5
-          const scale = 0.8 + i * 0.2
+          const duration = 18 + Math.random() * 10
+          const delay = -Math.random() * 18
+          const scale = 0.8 + Math.random() * 0.4
           return (
             <div
               key={i}
+              className="mist-cloud"
               style={{
-                position: "absolute",
                 top: `${top}%`,
-                left: "-250px",
+                left: "-25%",
                 animation: `drift ${duration}s ${delay}s linear infinite`,
                 transform: `scale(${scale})`,
-                opacity: 0.6,
+                opacity: 0.45 + Math.random() * 0.2,
               }}
-            >
-              <div style={{ position: "relative", width: "200px", height: "80px" }}>
-                <div style={{
-                  position: "absolute", bottom: 0, left: "20px",
-                  width: "100px", height: "60px", borderRadius: "50px",
-                  background: "rgba(209,213,219,0.9)",
-                }} />
-                <div style={{
-                  position: "absolute", bottom: "20px", left: "30px",
-                  width: "70px", height: "70px", borderRadius: "50%",
-                  background: "rgba(209,213,219,0.9)",
-                }} />
-                <div style={{
-                  position: "absolute", bottom: "25px", left: "70px",
-                  width: "80px", height: "80px", borderRadius: "50%",
-                  background: "rgba(229,231,235,0.95)",
-                }} />
-                <div style={{
-                  position: "absolute", bottom: "15px", left: "110px",
-                  width: "60px", height: "60px", borderRadius: "50%",
-                  background: "rgba(209,213,219,0.9)",
-                }} />
-                <div style={{
-                  position: "absolute", bottom: 0, left: "80px",
-                  width: "90px", height: "55px", borderRadius: "50px",
-                  background: "rgba(209,213,219,0.9)",
-                }} />
-              </div>
-            </div>
+            />
           )
         })}
       </div>

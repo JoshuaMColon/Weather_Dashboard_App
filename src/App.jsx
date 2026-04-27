@@ -4,6 +4,7 @@ import WeatherCard from "./components/WeatherCard"
 import ErrorMessage from "./components/ErrorMessage"
 import Forecast from "./components/Forecast"
 import ParticleEffect from "./components/ParticleEffect"
+import HourlyForecast from "./components/HourlyForecast"
 import "./index.css"
 
 // PASTE API KEY HERE -from openweathermap.org
@@ -25,6 +26,8 @@ export default function App() {
 
   const [darkMode, setDarkMode] = useState(false)
 
+  const [hourly, setHourly] = useState([])
+
   // This function runs when the user clicks Search
   // async = this function contsains await (waits for data)
   async function handleSearch(city) {
@@ -34,6 +37,7 @@ export default function App() {
     setForecast([])   // clear previous forecast
     setShowForecast(false) // hide forecast until new data loads
     setLoading(true) //show loading state
+    setHourly([]) // clear previous hourly forecast
 
     try {
       // Fetch weather data from OpenWeatherMap
@@ -79,6 +83,19 @@ export default function App() {
       low: Math.round(day.main.temp_min),
       description: day.weather[0].description,
       icon: day.weather[0].icon,
+    })))
+
+    // Hour forecast - next 8 entries (24 hours)
+    const next24 = forecastData.list.slice(0, 8)
+
+    setHourly(next24.map(hour => ({
+      time: new Date(hour.dt_txt).toLocaleTimeString("en-US", {
+        hour: "numeric",
+        hour12: true,
+      }),
+      temp: Math.round(hour.main.temp),
+      description: hour.weather[0].description,
+      icon: hour.weather[0].icon,
     })))
        
     
@@ -134,6 +151,12 @@ export default function App() {
         <ErrorMessage message={error} />
         <WeatherCard data={weather} darkMode={darkMode}/>
       </div>
+
+      {/* Hourly forecast - shows automatically after search */}
+      <div className="w-full max-w-md px-2">
+        <HourlyForecast hourly={hourly} darkMode={darkMode} />
+      </div>
+
 
       {/* ✅ Toggle button — only shows after a successful search */}
       {forecast.length > 0 && (

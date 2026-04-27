@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import Particles, { initParticlesEngine } from "@tsparticles/react"
 import { loadSlim } from "@tsparticles/slim"
 
-function ParticleEffect({ description }) {
+function ParticleEffect({ description, icon }) {
   const [init, setInit] = useState(false)
 
   useEffect(() => {
@@ -12,6 +12,7 @@ function ParticleEffect({ description }) {
   }, [])
 
   const desc = description ? description.toLowerCase() : ""
+  const isNight = icon && icon.endsWith('n')
 
   const particleOptions = useMemo(() => {
     if (desc.includes("thunderstorm")) {
@@ -101,7 +102,42 @@ function ParticleEffect({ description }) {
   }
 
   // --- CLEAR / SUNNY (pure CSS) ---
-  if (desc.includes("clear") || desc.includes("sunny")) {
+  if ((desc.includes("clear") || desc.includes("sunny"))) {
+    // Night time - show moon
+    if (isNight) {
+      return (
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+          {/* Main glow - soft light source */}
+          <div
+            style={{
+              position: "absolute",
+              top: "-10px",
+              right: "-20px",
+              width: "280px",
+              height: "280px",
+              borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(255,255,255,0.6), rgba(255,255,255,0.15) 35%, transparent 65%)",
+              filter: "blur(30px)",
+              animation: "pulse-sun 3s ease-in-out infinite",
+            }}
+          />
+          {/* Extended ambient light */}
+          <div
+            style={{
+              position: "absolute",
+              top: "-60px",
+              right: "-100px",
+              width: "400px",
+              height: "400px",
+              borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(255,255,255,0.25), transparent 60%)",
+              filter: "blur(40px)",
+            }}
+          />
+        </div>
+      )
+    }
+    // Daytime - show sun beams
     return (
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         {[...Array(12)].map(function(_, i) {

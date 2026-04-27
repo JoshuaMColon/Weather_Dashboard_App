@@ -129,7 +129,7 @@ export default function App() {
       </button>
 
       {/* Weather effects */}
-      <ParticleEffect description={weather ? weather.description : ""} />
+      <ParticleEffect description={weather ? weather.description : ""} icon={weather ? weather.icon : ""} />
 
       {/* App Title */}
       <h1 className={`text-4x1 sm:text-4x1 font-bold mb-2 text-center ${darkMode ? 'text-white' : 'text-blue-900'} mb-2`}>

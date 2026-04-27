@@ -1,4 +1,4 @@
-function HourlyForecase({ hourly, darkMode }) {
+function HourlyForecast({ hourly, darkMode }) {
     if (!hourly || hourly.length === 0) return null
 
     return (

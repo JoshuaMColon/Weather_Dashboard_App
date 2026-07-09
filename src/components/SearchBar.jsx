@@ -1,44 +1,38 @@
-import { useState } from "react"
-// SearchBar.jsx
-// This component handles user input for city search
+import { useState } from "react";
 
 function SearchBar({ onSearch }) {
-//                   ^ props - parent passes in onSearch function
+  const [city, setCity] = useState("");
 
-    // useState holds the current text the user has typed
-    // city = the current value. setCity = function to change it
-    const [city, setCity] = useState("")
+  function handleSearch() {
+    if (city.trim() === "") return;
+    onSearch(city);
+  }
 
-    function handleSearch() {
-        if (city.trim() === '') return // don't search empty input
-        onSearch(city)                 // call the function from parent
-    }
+  function handleKeyDown(e) {
+    if (e.key === "Enter") handleSearch();
+  }
 
-    function handleKeyDown(e) {
-        if (e.key === "Enter") handleSearch() // search on Enter Key
-    }
-
-    return (
-        <div className="flex gap-2 w-full">
-      <input
-        type="text"
-        placeholder="Enter a city..."
-        value={city}
-        onChange={(e) => setCity(e.target.value)}
-        onKeyDown={handleKeyDown}
-        className="flex-1 px-3 py-2 sm:px-4 sm:py-2 rounded-lg border border-gray-300
-        focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 text-sm sm:text-base"
-      />
+  return (
+    <div className="flex w-full flex-col gap-3 sm:flex-row">
+      <label className="flex flex-1 items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm focus-within:border-sky-400 focus-within:ring-2 focus-within:ring-sky-200">
+        <span className="text-lg">🔍</span>
+        <input
+          type="text"
+          placeholder="Enter a city..."
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="w-full border-none bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400 sm:text-base"
+        />
+      </label>
       <button
         onClick={handleSearch}
-        className="px-4 py-2 sm:px-6 bg-blue-600 text-white font-semibold
-        text-sm sm:text-base rounded-lg hover:bg-blue-700 cursor-pointer transition-colors
-        whitespace-nowrap"
+        className="w-full rounded-2xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-700 sm:w-auto"
       >
         Search
       </button>
     </div>
-  )
+  );
 }
 
-export default SearchBar
+export default SearchBar;

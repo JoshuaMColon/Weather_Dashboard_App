@@ -1,44 +1,94 @@
 function WeatherCard({ data, darkMode }) {
-  if (!data) return null
+  if (!data) return null;
 
   return (
-    <div className={`${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}
-    rounded-2xl shadow-lg p-6 sm:p-8 w-full mt-6`}>
-
-      <img
-        src={`https://openweathermap.org/img/wn/${data.icon}@2x.png`}
-        alt={data.description}
-        className="w-16 h-16 sm:w-20 sm:h-20 -mb-2"
-      />
-
-      <h2 className={`text-2xl sm:text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-        {data.city}
-      </h2>
-
-      <p className={`capitalize mt-1 text-sm sm:text-base ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-        {data.description}
-      </p>
-
-      <p className={`text-6xl sm:text-7xl font-light mt-4 mb-6 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-        {data.temp}°F
-      </p>
-
-      <div className={`flex justify-between border-t pt-4 ${darkMode ? 'text-gray-300 border-gray-600' : 'text-gray-600'}`}>
-        <div className="text-center">
-          <p className="text-xs sm:text-sm text-gray-400">Humidity</p>
-          <p className="font-semibold text-sm sm:text-base">{data.humidity}%</p>
+    <div
+      className={`mt-6 w-full overflow-hidden rounded-[28px] border p-4 shadow-lg sm:p-7 ${darkMode ? "border-slate-700/70 bg-slate-800/80 text-white" : "border-slate-200 bg-white text-slate-800"} shrink-0`}
+    >
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p
+            className={`text-xs font-semibold uppercase tracking-[0.3em] ${darkMode ? "text-slate-400" : "text-slate-500"}`}
+          >
+            Current weather
+          </p>
+          <h2
+            className={`mt-2 text-2xl font-semibold sm:text-3xl ${darkMode ? "text-white" : "text-slate-900"}`}
+          >
+            {data.city}
+          </h2>
+          <p
+            className={`mt-1 capitalize ${darkMode ? "text-slate-300" : "text-slate-600"}`}
+          >
+            {data.description}
+          </p>
         </div>
-        <div className="text-center">
-          <p className="text-xs sm:text-sm text-gray-400">Wind</p>
-          <p className="font-semibold text-sm sm:text-base">{data.wind} mph</p>
+        <div
+          className={`rounded-2xl p-2 ${darkMode ? "bg-slate-700/70" : "bg-sky-50"}`}
+        >
+          <img
+            src={`https://openweathermap.org/img/wn/${data.icon}@2x.png`}
+            alt={data.description}
+            className="h-16 w-16 sm:h-20 sm:w-20"
+          />
         </div>
-        <div className="text-center">
-          <p className="text-xs sm:text-sm text-gray-400">Feels Like</p>
-          <p className="font-semibold text-sm sm:text-base">{data.feelsLike}°F</p>
+      </div>
+
+      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p
+            className={`text-5xl font-semibold sm:text-7xl ${darkMode ? "text-sky-300" : "text-sky-600"}`}
+          >
+            {data.temp}°F
+          </p>
+          <p
+            className={`mt-2 text-sm ${darkMode ? "text-slate-400" : "text-slate-500"}`}
+          >
+            Feels like {data.feelsLike}°F
+          </p>
+        </div>
+        <div
+          className={`rounded-2xl px-4 py-3 text-sm ${darkMode ? "bg-slate-700/70 text-slate-200" : "bg-slate-100 text-slate-700"}`}
+        >
+          <p className="font-semibold">Today’s outlook</p>
+          <p className="mt-1">Bright skies and comfortable temperatures.</p>
+        </div>
+      </div>
+
+      <div className="mt-6 grid gap-3 grid-cols-1 sm:grid-cols-3">
+        <div
+          className={`rounded-2xl p-3 ${darkMode ? "bg-slate-700/70" : "bg-slate-100"}`}
+        >
+          <p
+            className={`text-xs uppercase tracking-[0.2em] ${darkMode ? "text-slate-400" : "text-slate-500"}`}
+          >
+            Humidity
+          </p>
+          <p className="mt-1 text-lg font-semibold">{data.humidity}%</p>
+        </div>
+        <div
+          className={`rounded-2xl p-3 ${darkMode ? "bg-slate-700/70" : "bg-slate-100"}`}
+        >
+          <p
+            className={`text-xs uppercase tracking-[0.2em] ${darkMode ? "text-slate-400" : "text-slate-500"}`}
+          >
+            Wind
+          </p>
+          <p className="mt-1 text-lg font-semibold">{data.wind} mph</p>
+        </div>
+        <div
+          className={`rounded-2xl p-3 ${darkMode ? "bg-slate-700/70" : "bg-slate-100"}`}
+        >
+          <p
+            className={`text-xs uppercase tracking-[0.2em] ${darkMode ? "text-slate-400" : "text-slate-500"}`}
+          >
+            Feels like
+          </p>
+          <p className="mt-1 text-lg font-semibold">{data.feelsLike}°F</p>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default WeatherCard
+export default WeatherCard;

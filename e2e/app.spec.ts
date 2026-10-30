@@ -107,6 +107,6 @@ test.describe('mobile', () => {
     await page.goto('/')
     await expect(page.getByTestId('city-name')).toHaveText('London')
     await expect(page.locator('canvas')).toHaveCount(1)
-    await expect(page.locator('.lightning, .clouds-drift')).toHaveCount(0)
+    await expect(page.getByTestId('sky-canvas')).toHaveAttribute('data-motion', 'static')
   })
 })

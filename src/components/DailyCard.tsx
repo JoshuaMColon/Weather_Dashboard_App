@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { CalendarDays } from 'lucide-react'
 import type { WeatherResponse } from '../lib/api'
 import { fmtWeekday } from '../lib/time'
@@ -5,6 +6,7 @@ import { tempColor } from '../lib/sky'
 import { fmtTemp, type Preferences } from '../lib/units'
 import { WeatherIcon } from './WeatherIcon'
 import { Card } from './Card'
+import { usePauseOffscreen } from '../hooks/usePauseOffscreen'
 
 export function DailyCard({ w, prefs }: { w: WeatherResponse; prefs: Preferences }) {
   const days = w.daily.slice(0, 10)
@@ -12,10 +14,12 @@ export function DailyCard({ w, prefs }: { w: WeatherResponse; prefs: Preferences
   const hi = Math.max(...days.map((d) => d.maxC))
   const span = Math.max(1, hi - lo)
   const pct = (c: number) => ((c - lo) / span) * 100
+  const list = useRef<HTMLUListElement>(null)
+  usePauseOffscreen(list)
 
   return (
     <Card icon={<CalendarDays size={13} aria-hidden="true" />} title="10-day forecast">
-      <ul className="mt-1" data-testid="daily">
+      <ul ref={list} className="mt-1" data-testid="daily">
         {days.map((d, i) => {
           const left = pct(d.minC)
           const width = Math.max(4, pct(d.maxC) - left)

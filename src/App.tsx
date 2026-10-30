@@ -10,6 +10,7 @@ import { AccountSheet } from './components/AccountSheet'
 import { CityList } from './components/CityList'
 import { Toolbar } from './components/Toolbar'
 import { WeatherView } from './components/WeatherView'
+import { Sky } from './components/Sky'
 
 const keyOf = (p: Pick<Place, 'lat' | 'lon' | 'id'>) => (p.id === 'here' ? 'here' : `${round4(p.lat)},${round4(p.lon)}`)
 const BASE = import.meta.env.BASE_URL
@@ -160,6 +161,7 @@ export default function App() {
       )}
 
       <main id="main" className="relative min-h-dvh lg:pl-[340px]" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} aria-live="polite">
+        <Sky />
         {preview ? (
           <>
             <div className="glass-bar fixed inset-x-0 top-0 z-20 flex justify-between px-4 pt-[max(0.6rem,env(safe-area-inset-top))] pb-2 lg:left-[340px]" data-testid="preview-bar">

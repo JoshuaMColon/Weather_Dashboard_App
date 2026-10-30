@@ -1,110 +1,177 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Inter Variable', Inter, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  background: #0b1220;
 }
 
 body {
   margin: 0;
-  min-height: 100vh;
-  font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
 }
 
-@keyframes rain {
-  0% {
-    transform: translate3d(0, -30px, 0);
-    opacity: 0.15;
+/* Thin hero temperature: Inter's variable 100–200 weights read like SF's thin numerals. */
+.temp-hero {
+  font-family: 'Inter Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 200;
+  font-size: clamp(96px, 26vw, 112px);
+  letter-spacing: -0.04em;
+  font-feature-settings: 'tnum' 0;
+}
+
+.text-shadow {
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+}
+
+/* Frosted glass. Tint is dark enough that white/80 text keeps AA contrast on the lightest sky. */
+.glass {
+  background: rgb(8 20 40 / 0.42);
+  -webkit-backdrop-filter: blur(22px) saturate(1.4);
+  backdrop-filter: blur(22px) saturate(1.4);
+  box-shadow: inset 0 0 0 0.5px rgb(255 255 255 / 0.14);
+}
+.glass-bar {
+  background: rgb(8 16 32 / 0.45);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  backdrop-filter: blur(24px) saturate(1.5);
+  border-top: 0.5px solid rgb(255 255 255 / 0.12);
+}
+.sidebar {
+  background: rgb(0 0 0 / 0.72);
+  -webkit-backdrop-filter: blur(30px);
+  backdrop-filter: blur(30px);
+  border-right: 0.5px solid rgb(255 255 255 / 0.12);
+}
+
+/* Press feedback for mouse, pen and touch. */
+.press {
+  cursor: pointer;
+  transition: transform 120ms ease, filter 120ms ease, opacity 120ms ease;
+  touch-action: manipulation;
+}
+.press:active {
+  transform: scale(0.96);
+  filter: brightness(0.82);
+}
+@media (hover: hover) {
+  .press:hover {
+    filter: brightness(1.08);
   }
-  100% {
-    transform: translate3d(0, 110vh, 0);
+}
+:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+/* The search field's label shows the focus ring instead (focus-within). */
+input[type='search']:focus-visible {
+  outline: none;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Sky layers */
+.sky-fade {
+  animation: sky-in 700ms ease both;
+}
+@keyframes sky-in {
+  from {
+    opacity: 0;
+  }
+}
+.sun-glow {
+  background: radial-gradient(circle, rgb(255 226 140 / 0.55) 0%, rgb(255 210 110 / 0.18) 35%, transparent 70%);
+  animation: glow 8s ease-in-out infinite alternate;
+}
+@keyframes glow {
+  to {
+    transform: scale(1.08);
+    opacity: 0.85;
+  }
+}
+.cloud {
+  position: absolute;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.55);
+  filter: blur(48px);
+}
+.clouds-drift .cloud {
+  animation: drift 90s linear infinite alternate;
+}
+@keyframes drift {
+  from {
+    transform: translateX(-8%);
+  }
+  to {
+    transform: translateX(12%);
+  }
+}
+.lightning {
+  opacity: 0;
+  animation: flash 9s infinite;
+}
+@keyframes flash {
+  0%, 91%, 93.5%, 100% {
+    opacity: 0;
+  }
+  92% {
     opacity: 0.35;
   }
-}
-
-@keyframes snow {
-  0% {
-    transform: translate3d(0, -20px, 0) rotate(0deg);
-    opacity: 1;
+  93% {
+    opacity: 0.08;
   }
-  100% {
-    transform: translate3d(0, 110vh, 0) rotate(360deg);
-    opacity: 0.3;
+  94% {
+    opacity: 0.25;
   }
 }
-
-@keyframes pulse-sun {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.8;
-  }
-  50% {
-    transform: scale(1.08);
-    opacity: 1;
+.skeleton {
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.22), rgb(255 255 255 / 0.1));
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
   }
 }
-
-@keyframes drift {
-  0% {
-    transform: translate3d(-20vw, 0, 0);
-    opacity: 0;
-  }
-  10%,
-  90% {
-    opacity: 0.5;
-  }
-  100% {
-    transform: translate3d(125vw, 0, 0);
+.list-overlay {
+  animation: rise 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.sheet[open] {
+  animation: rise 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.toast {
+  animation: rise 240ms ease;
+}
+@keyframes rise {
+  from {
+    transform: translateY(16px);
     opacity: 0;
   }
 }
 
-@keyframes beam-pulse {
-  0% {
-    opacity: 0.4;
-    filter: blur(1.4px);
-    box-shadow: 0 0 12px rgba(253, 224, 71, 0.18);
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-  40% {
-    opacity: 1;
-    filter: blur(0.2px);
-    box-shadow: 0 0 56px rgba(253, 224, 71, 0.65);
+  .press:active {
+    transform: none;
   }
-  60% {
-    opacity: 0.9;
-    filter: blur(0.3px);
-    box-shadow: 0 0 48px rgba(253, 224, 71, 0.58);
-  }
-  100% {
-    opacity: 0.4;
-    filter: blur(1.4px);
-    box-shadow: 0 0 12px rgba(253, 224, 71, 0.18);
-  }
-}
-
-.mist-cloud {
-  position: absolute;
-  border-radius: 140px;
-  background:
-    radial-gradient(
-      circle at 30% 45%,
-      rgba(248, 250, 252, 1),
-      rgba(148, 163, 184, 0.55) 38%,
-      transparent 62%
-    ),
-    radial-gradient(
-      circle at 60% 50%,
-      rgba(248, 250, 252, 0.98),
-      rgba(148, 163, 184, 0.45) 46%,
-      transparent 76%
-    );
-  filter: blur(6px);
-  box-shadow: 0 0 80px rgba(148, 163, 184, 0.35);
-  pointer-events: none;
 }

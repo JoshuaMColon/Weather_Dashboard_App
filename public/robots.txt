@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://weather-dashboard-app-sable-three.vercel.app/sitemap.xml

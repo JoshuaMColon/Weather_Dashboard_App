@@ -1,0 +1,30 @@
+import { Navigation } from 'lucide-react'
+import type { WeatherResponse } from '../lib/api'
+import { codeInfo } from '../lib/weatherCodes'
+import { fmtTemp, toTemp, type Preferences } from '../lib/units'
+
+export function Hero({ name, isHere, w, prefs }: { name: string; isHere: boolean; w: WeatherResponse; prefs: Preferences }) {
+  const today = w.daily[0]
+  const label = codeInfo(w.current.code).label
+  return (
+    <header className="text-shadow pt-12 pb-8 text-center md:pt-16" data-testid="hero">
+      {isHere && (
+        <p className="flex items-center justify-center gap-1 text-[13px] font-semibold uppercase tracking-wide">
+          <Navigation size={12} className="fill-white" aria-hidden="true" /> My Location
+        </p>
+      )}
+      <h1 className="text-[34px] leading-tight font-normal tracking-tight" data-testid="city-name">
+        {name}
+      </h1>
+      <p className="temp-hero leading-none" aria-label={`${Math.round(toTemp(w.current.tempC, prefs.units))} degrees ${prefs.units === 'F' ? 'Fahrenheit' : 'Celsius'}`} data-testid="current-temp">
+        <span className="pl-[0.28em]">{fmtTemp(w.current.tempC, prefs.units)}</span>
+      </p>
+      <p className="text-[20px] font-medium">{label}</p>
+      {today && (
+        <p className="text-[20px] font-medium">
+          H:{fmtTemp(today.maxC, prefs.units)}&nbsp;&nbsp;L:{fmtTemp(today.minC, prefs.units)}
+        </p>
+      )}
+    </header>
+  )
+}

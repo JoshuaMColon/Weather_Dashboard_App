@@ -118,7 +118,7 @@ docs/screenshots/ Images used in this README
 
 ## Deploying
 
-Vercel builds this with no extra configuration (`vercel.json` holds the build, rewrite and cache settings). Set the two `VITE_SUPABASE_*` variables in the project's environment variables to enable accounts. `npm run deploy` still publishes a static GitHub Pages build, which uses the direct Open-Meteo fallback.
+Vercel builds this with no extra configuration (`vercel.json` holds the build, rewrite and cache settings). Set the two `VITE_SUPABASE_*` variables in the project's environment variables to enable accounts.
 
 ## Credits
 

@@ -1,4 +1,3 @@
-import process from 'node:process'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { defineConfig, type Connect, type Plugin, type ViteDevServer } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -49,8 +48,6 @@ function localApi(): Plugin {
 }
 
 export default defineConfig({
-  // The legacy GitHub Pages build lives under /Weather_Dashboard_App/; Vercel and local dev serve from the root.
-  base: process.env.GITHUB_PAGES ? '/Weather_Dashboard_App/' : '/',
   plugins: [react(), tailwindcss(), localApi()],
   build: { target: 'es2022', sourcemap: false },
 })

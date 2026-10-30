@@ -1,0 +1,7 @@
+# Weather
+
+> An iPhone-style weather web app: current conditions, a 24-hour forecast, a 10-day forecast and detail tiles for any city, with data from Open-Meteo.
+
+- [App](https://weather-dashboard-app-sable-three.vercel.app/): search for a city or use your location
+- [Demo](https://weather-dashboard-app-sable-three.vercel.app/demo): sample cities in a guest account
+- [Source](https://github.com/JoshuaMColon/Weather_Dashboard_App)

@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { Clock, Sunrise, Sunset } from 'lucide-react'
 import type { WeatherResponse } from '../lib/api'
 import { hourlySummary } from '../lib/insights'
@@ -5,6 +6,7 @@ import { fmtClock, fmtHour } from '../lib/time'
 import { fmtTemp, type Preferences } from '../lib/units'
 import { WeatherIcon } from './WeatherIcon'
 import { Card } from './Card'
+import { usePauseOffscreen } from '../hooks/usePauseOffscreen'
 
 type Item =
   | { type: 'hour'; time: number; label: string; code: number; isDay: boolean; tempC: number; precipProb: number }
@@ -30,13 +32,15 @@ export function HourlyCard({ w, prefs }: { w: WeatherResponse; prefs: Preference
     }
   }
   items.sort((a, b) => a.time - b.time)
+  const list = useRef<HTMLOListElement>(null)
+  usePauseOffscreen(list)
 
   return (
     <Card icon={<Clock size={13} aria-hidden="true" />} title="Hourly forecast" className="!px-0">
       <p className="mx-4 mt-2 border-b border-white/20 pb-2.5 text-[15px] leading-snug" data-testid="hourly-summary">
         {hourlySummary(w, prefs)}
       </p>
-      <ol className="no-scrollbar mt-1 flex snap-x overflow-x-auto rounded-lg px-2 pb-1" aria-label="Next 24 hours" tabIndex={0} data-testid="hourly">
+      <ol ref={list} className="no-scrollbar mt-1 flex snap-x overflow-x-auto rounded-lg px-2 pb-1" aria-label="Next 24 hours" tabIndex={0} data-testid="hourly">
         {items.map((it) => (
           <li key={`${it.type}-${it.time}`} className="flex w-[58px] shrink-0 snap-start flex-col items-center gap-2 py-2 text-center">
             <span className="text-[14px] font-semibold whitespace-nowrap">{it.type === 'sun' ? it.label.replace(' ', '') : it.label}</span>

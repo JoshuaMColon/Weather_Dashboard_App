@@ -1,129 +1,95 @@
-import { useEffect, useRef } from 'react'
-import type { SkyState } from '../lib/sky'
+import { useEffect, useRef, useState } from 'react'
+import { SkyEngine } from '../lib/sky/engine'
+import { useSkyScene } from '../lib/skyStore'
+import { useReducedMotion } from '../hooks/useReducedMotion'
 
-interface Props {
-  sky: SkyState
-  gradient: string
-  reducedMotion: boolean
+declare global {
+  interface Window {
+    __wxSky?: { readonly frames: number; readonly running: boolean; readonly scene: string | null; flash(hold?: boolean): boolean; release(): void }
+  }
 }
 
-/** Full-screen animated sky: gradient + soft clouds (CSS) + rain/snow/stars (canvas). */
-export function Sky({ sky, gradient, reducedMotion }: Props) {
-  const cloudy = ['partly', 'cloudy', 'fog', 'drizzle', 'rain', 'snow', 'storm'].includes(sky.kind)
-  const cloudOpacity = sky.kind === 'partly' ? 0.35 : sky.kind === 'fog' ? 0.6 : 0.5
-  return (
-    <div className="fixed inset-0 -z-10 overflow-hidden" aria-hidden="true" data-sky={sky.key}>
-      <div key={gradient} className="sky-fade absolute inset-0" style={{ background: gradient }} />
-      {sky.kind === 'clear' && sky.period === 'day' && <div className="sun-glow absolute -right-24 -top-24 h-[420px] w-[420px] rounded-full" />}
-      {sky.period === 'twilight' && <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#ff9e6b]/25 to-transparent" />}
-      {cloudy && (
-        <div className={`absolute inset-0 ${reducedMotion ? '' : 'clouds-drift'}`} style={{ opacity: cloudOpacity }}>
-          <div className="cloud left-[-10%] top-[6%] h-[220px] w-[520px]" />
-          <div className="cloud left-[45%] top-[18%] h-[180px] w-[460px] [animation-delay:-20s]" />
-          <div className="cloud left-[10%] top-[42%] h-[200px] w-[600px] opacity-70 [animation-delay:-40s]" />
-        </div>
-      )}
-      {sky.kind === 'storm' && !reducedMotion && <div className="lightning absolute inset-0 bg-white" />}
-      <Particles sky={sky} reducedMotion={reducedMotion} />
-    </div>
-  )
-}
-
-function Particles({ sky, reducedMotion }: { sky: SkyState; reducedMotion: boolean }) {
+/**
+ * Full-screen animated sky, mounted once at the app root: a crossfading CSS
+ * gradient plus one canvas (sun, stars, parallax clouds, rain, snow, fog, wind,
+ * lightning) painted by SkyEngine.
+ */
+export function Sky() {
+  const scene = useSkyScene()
+  const reduced = useReducedMotion()
   const ref = useRef<HTMLCanvasElement>(null)
-  const mode =
-    sky.kind === 'rain' || sky.kind === 'storm' ? 'rain' : sky.kind === 'drizzle' ? 'drizzle' : sky.kind === 'snow' ? 'snow' : sky.period === 'night' && (sky.kind === 'clear' || sky.kind === 'partly') ? 'stars' : null
+  const engine = useRef<SkyEngine | null>(null)
+
+  // Gradient crossfade: keep the previous layer underneath while the new one fades in.
+  const [layers, setLayers] = useState<{ id: number; g: string }[]>([])
+  const top = layers[layers.length - 1]
+  if (scene && top?.g !== scene.gradient) setLayers([...layers.slice(-1), { id: (top?.id ?? 0) + 1, g: scene.gradient }])
 
   useEffect(() => {
     const canvas = ref.current
-    if (!canvas || !mode) return
-    // Reduced motion: keep static stars, skip falling precipitation entirely.
-    if (reducedMotion && mode !== 'stars') return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    let w = 0
-    let h = 0
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
-    const resize = () => {
-      w = canvas.clientWidth
-      h = canvas.clientHeight
-      canvas.width = w * dpr
-      canvas.height = h * dpr
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    if (!canvas) return
+    const e = new SkyEngine(canvas)
+    engine.current = e
+    window.__wxSky = {
+      get frames() {
+        return e.frames
+      },
+      get running() {
+        return e.running
+      },
+      get scene() {
+        return e.scene
+      },
+      flash: (hold) => e.flash(hold),
+      release: () => e.release(),
     }
-    resize()
-    window.addEventListener('resize', resize)
-
-    const count = mode === 'rain' ? 130 : mode === 'drizzle' ? 60 : mode === 'snow' ? 110 : 140
-    const rand = (a: number, b: number) => a + Math.random() * (b - a)
-    const parts = Array.from({ length: count }, () => ({
-      x: rand(0, w),
-      y: mode === 'stars' ? rand(0, h * 0.65) : rand(-h, h),
-      v: mode === 'snow' ? rand(0.3, 1.1) : mode === 'stars' ? rand(0.002, 0.02) : rand(9, 16),
-      s: mode === 'snow' ? rand(1.2, 3.4) : mode === 'stars' ? rand(0.4, 1.4) : rand(10, 22),
-      p: rand(0, Math.PI * 2),
-    }))
-
-    let raf = 0
-    let last = performance.now()
-    const draw = (now: number) => {
-      const dt = Math.min(2.5, (now - last) / 16.7)
-      last = now
-      ctx.clearRect(0, 0, w, h)
-      for (const q of parts) {
-        if (mode === 'stars') {
-          q.p += q.v * dt
-          ctx.globalAlpha = 0.35 + 0.45 * (0.5 + 0.5 * Math.sin(q.p))
-          ctx.fillStyle = '#fff'
-          ctx.beginPath()
-          ctx.arc(q.x, q.y, q.s, 0, Math.PI * 2)
-          ctx.fill()
-        } else if (mode === 'snow') {
-          q.y += q.v * dt
-          q.p += 0.01 * dt
-          q.x += Math.sin(q.p) * 0.4 * dt
-          if (q.y > h + 5) {
-            q.y = -5
-            q.x = rand(0, w)
-          }
-          ctx.globalAlpha = 0.75
-          ctx.fillStyle = '#fff'
-          ctx.beginPath()
-          ctx.arc(q.x, q.y, q.s, 0, Math.PI * 2)
-          ctx.fill()
-        } else {
-          q.y += q.v * dt
-          q.x -= q.v * 0.12 * dt
-          if (q.y > h) {
-            q.y = rand(-40, 0)
-            q.x = rand(0, w + 60)
-          }
-          ctx.globalAlpha = mode === 'drizzle' ? 0.25 : 0.35
-          ctx.strokeStyle = '#cfe6ff'
-          ctx.lineWidth = mode === 'drizzle' ? 1 : 1.3
-          ctx.beginPath()
-          ctx.moveTo(q.x, q.y)
-          ctx.lineTo(q.x + q.s * 0.12, q.y - q.s)
-          ctx.stroke()
-        }
-      }
-      if (!reducedMotion && !document.hidden) raf = requestAnimationFrame(draw)
+    // Start animating once the page has loaded and the main thread is idle so
+    // the sky never competes with first paint.
+    let idle = 0
+    let timer = 0
+    const begin = () => {
+      const ric = window.requestIdleCallback
+      if (ric) idle = ric(() => e.start(), { timeout: 1500 })
+      else timer = window.setTimeout(() => e.start(), 300)
     }
-    raf = requestAnimationFrame(draw)
-    const onVis = () => {
-      if (!document.hidden && !reducedMotion) {
-        last = performance.now()
-        raf = requestAnimationFrame(draw)
-      }
-    }
-    document.addEventListener('visibilitychange', onVis)
+    if (document.readyState === 'complete') begin()
+    else window.addEventListener('load', begin, { once: true })
     return () => {
-      cancelAnimationFrame(raf)
-      window.removeEventListener('resize', resize)
-      document.removeEventListener('visibilitychange', onVis)
+      window.removeEventListener('load', begin)
+      if (idle) window.cancelIdleCallback?.(idle)
+      clearTimeout(timer)
+      e.destroy()
+      engine.current = null
+      delete window.__wxSky
     }
-  }, [mode, reducedMotion])
+  }, [])
 
-  if (!mode) return null
-  return <canvas ref={ref} className="absolute inset-0 h-full w-full" />
+  useEffect(() => {
+    engine.current?.setReduced(reduced)
+  }, [reduced])
+
+  useEffect(() => {
+    if (!scene) return
+    engine.current?.setScene({
+      kind: scene.sky.kind,
+      period: scene.sky.period,
+      intensity: scene.intensity,
+      windKph: scene.windKph,
+      windDirDeg: scene.windDirDeg,
+    })
+  }, [scene])
+
+  const twilight = scene?.sky.period === 'twilight'
+  return (
+    <div className="fixed inset-0 -z-10 overflow-hidden bg-[#0d1424]" aria-hidden="true" data-sky={scene?.sky.key ?? 'loading'}>
+      {layers.map((l, i) => (
+        <div key={l.id} className={`absolute inset-0 ${i > 0 ? 'sky-fade' : ''}`} style={{ background: l.g }} />
+      ))}
+      <div
+        className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#ff9e6b]/25 to-transparent transition-opacity duration-1000"
+        style={{ opacity: twilight ? 1 : 0 }}
+      />
+      <canvas ref={ref} className="absolute inset-0 h-full w-full" data-testid="sky-canvas" />
+    </div>
+  )
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { ChevronDown, ChevronUp, Cloud, CloudOff, MinusCircle, Navigation, RefreshCw, UserRound, X } from 'lucide-react'
 import { useWeather } from '../hooks/useWeather'
 import type { GeocodeResult } from '../lib/api'
@@ -8,6 +8,8 @@ import { codeInfo } from '../lib/weatherCodes'
 import { fmtClock, nowUnix } from '../lib/time'
 import { fmtTemp, type Preferences } from '../lib/units'
 import { SearchBox } from './SearchBox'
+import { WeatherIcon } from './WeatherIcon'
+import { usePauseOffscreen } from '../hooks/usePauseOffscreen'
 
 interface Props {
   here: Place | null
@@ -31,6 +33,8 @@ export function CityList(p: Props) {
   const [editing, setEditing] = useState(false)
   const [searching, setSearching] = useState(false)
   const all = p.here ? [p.here, ...p.places] : p.places
+  const list = useRef<HTMLUListElement>(null)
+  usePauseOffscreen(list)
 
   return (
     <nav aria-label="Saved cities" className="flex h-full flex-col" data-testid="city-list">
@@ -58,7 +62,7 @@ export function CityList(p: Props) {
         <SearchBox onPick={p.onPick} onLocate={p.onLocate} locating={p.locating} locateStatus={p.locateStatus} onActiveChange={setSearching} />
       </div>
       {!searching && (
-        <ul className="no-scrollbar flex-1 space-y-2.5 overflow-y-auto px-4 pb-6">
+        <ul ref={list} className="no-scrollbar flex-1 space-y-2.5 overflow-y-auto px-4 pb-6">
           {all.map((place, i) => (
             <li key={place.id} className="flex items-center gap-2">
               {editing && place.id !== 'here' && (
@@ -115,7 +119,10 @@ function MiniCard({ place, prefs, selected, onClick }: { place: Place; prefs: Pr
           {isHere && <Navigation size={12} className="fill-white" aria-hidden="true" />}
         </span>
         <span className="truncate text-[14px] font-medium">{isHere ? place.name : data ? fmtClock(nowUnix(), data.location.utcOffsetSeconds) : ''}</span>
-        <span className="mt-auto truncate text-[14px] font-medium">{data ? codeInfo(data.current.code).label : 'Loading…'}</span>
+        <span className="mt-auto flex min-w-0 items-center gap-1.5 text-[14px] font-medium">
+          {data && <WeatherIcon code={data.current.code} isDay={data.current.isDay} size={18} className="shrink-0" />}
+          <span className="truncate">{data ? codeInfo(data.current.code).label : 'Loading…'}</span>
+        </span>
       </span>
       <span className="text-shadow relative flex shrink-0 flex-col items-end">
         <span className="text-[44px] leading-none font-light">{data ? fmtTemp(data.current.tempC, prefs.units) : '--'}</span>

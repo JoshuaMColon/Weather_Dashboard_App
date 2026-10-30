@@ -65,6 +65,6 @@ export function hourlySummary(w: WeatherResponse, prefs: Preferences): string {
   const label = codeInfo(w.current.code).label.toLowerCase()
   const first = change
     ? `${codeInfo(change.code).label} expected around ${fmtHour(change.time, off)}.`
-    : `${label[0].toUpperCase()}${label.slice(1)} conditions will continue for the next several hours.`
+    : `${label[0].toUpperCase()}${label.slice(1)}${/s$/.test(label) ? '' : ' conditions'} will continue for the next several hours.`
   return gust.value >= 15 ? `${first} Wind gusts are up to ${gust.value} ${gust.unit}.` : first
 }

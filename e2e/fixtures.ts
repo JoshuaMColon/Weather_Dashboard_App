@@ -9,6 +9,8 @@ export interface Scenario {
   utcOffsetSeconds: number
   precipProb?: number
   windKph?: number
+  /** Direction the wind blows FROM, degrees (default 225). */
+  windDirDeg?: number
   /** Weather code the next hours turn into (for notable-change banners). */
   laterCode?: number
 }
@@ -19,6 +21,9 @@ export const CITIES = {
   london: { name: 'London', lat: 51.5085, lon: -0.1257, country: 'United Kingdom', admin1: 'England' },
   sapporo: { name: 'Sapporo', lat: 43.0667, lon: 141.35, country: 'Japan', admin1: 'Hokkaido' },
   austin: { name: 'Austin', lat: 30.2672, lon: -97.7431, country: 'United States', admin1: 'Texas' },
+  seattle: { name: 'Seattle', lat: 47.6062, lon: -122.3321, country: 'United States', admin1: 'Washington' },
+  sanfrancisco: { name: 'San Francisco', lat: 37.7749, lon: -122.4194, country: 'United States', admin1: 'California' },
+  miami: { name: 'Miami', lat: 25.7617, lon: -80.1918, country: 'United States', admin1: 'Florida' },
 } as const
 
 export const SCENARIOS: Record<keyof typeof CITIES, Scenario> = {
@@ -27,6 +32,9 @@ export const SCENARIOS: Record<keyof typeof CITIES, Scenario> = {
   london: { code: 63, tempC: 11, hoursSinceSunrise: 4, utcOffsetSeconds: 0, precipProb: 90, windKph: 28 },
   sapporo: { code: 73, tempC: -4, hoursSinceSunrise: 3, utcOffsetSeconds: 32400, precipProb: 80, windKph: 14 },
   austin: { code: 2, tempC: 27, hoursSinceSunrise: 6, utcOffsetSeconds: -18000, precipProb: 10, laterCode: 95 },
+  seattle: { code: 3, tempC: 13, hoursSinceSunrise: 5, utcOffsetSeconds: -25200, precipProb: 20, windKph: 38, windDirDeg: 250 },
+  sanfrancisco: { code: 45, tempC: 14, hoursSinceSunrise: 2.5, utcOffsetSeconds: -25200, windKph: 9, windDirDeg: 280 },
+  miami: { code: 95, tempC: 29, hoursSinceSunrise: 8, utcOffsetSeconds: -14400, precipProb: 95, windKph: 32, windDirDeg: 120 },
 }
 
 const H = 3600
@@ -90,7 +98,7 @@ export function makeWeather(lat: number, lon: number, s: Scenario): WeatherRespo
       pressureHpa: 1014.2,
       pressureTrend: -1.2,
       windKph: s.windKph ?? 11,
-      windDirDeg: 225,
+      windDirDeg: s.windDirDeg ?? 225,
       gustKph: (s.windKph ?? 11) * 1.6,
       visibilityM: s.code >= 60 ? 6000 : 24000,
       uvIndex: isDay ? 5 : 0,

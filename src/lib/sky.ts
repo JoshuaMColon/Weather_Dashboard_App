@@ -78,3 +78,15 @@ export function tempColor(c: number): string {
   }
   return `rgb(${stops[stops.length - 1][1].join(',')})`
 }
+
+/** 0..1 precipitation intensity from the WMO code (light → heavy), used to scale rain/snow. */
+export function precipIntensity(code: number): number {
+  const table: Record<number, number> = {
+    51: 0.3, 53: 0.5, 55: 0.7, 56: 0.4, 57: 0.7,
+    61: 0.4, 63: 0.7, 65: 1, 66: 0.5, 67: 0.85,
+    71: 0.4, 73: 0.65, 75: 1, 77: 0.3,
+    80: 0.5, 81: 0.75, 82: 1, 85: 0.55, 86: 0.95,
+    95: 0.85, 96: 0.95, 99: 1,
+  }
+  return table[code] ?? 0.5
+}

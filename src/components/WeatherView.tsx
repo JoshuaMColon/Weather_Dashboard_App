@@ -1,23 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 import { useWeather } from '../hooks/useWeather'
-import { useReducedMotion } from '../hooks/useReducedMotion'
 import { notableChanges } from '../lib/insights'
-import { skyGradient, skyState } from '../lib/sky'
+import { precipIntensity, skyGradient, skyState } from '../lib/sky'
+import { skyStore } from '../lib/skyStore'
 import { codeInfo } from '../lib/weatherCodes'
 import { fmtTemp, type Preferences } from '../lib/units'
 import { DailyCard } from './DailyCard'
 import { Hero } from './Hero'
 import { HourlyCard } from './HourlyCard'
 import { Notables } from './Notables'
-import { Sky } from './Sky'
 import { Tiles } from './Tiles'
 
 const FALLBACK_SKY = { kind: 'cloudy', period: 'night', key: 'cloudy-night' } as const
 
 export function WeatherView({ name, lat, lon, isHere, prefs }: { name: string; lat: number; lon: number; isHere: boolean; prefs: Preferences }) {
   const { data, error, loading, refresh } = useWeather(lat, lon)
-  const reduced = useReducedMotion()
   const sky = data ? skyState(data) : FALLBACK_SKY
   const gradient = skyGradient(sky, prefs.theme)
   const notables = useMemo(() => (data ? notableChanges(data, prefs) : []), [data, prefs])
@@ -30,6 +28,17 @@ export function WeatherView({ name, lat, lon, isHere, prefs }: { name: string; l
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  // Publish the scene to the app-level sky so it can crossfade between cities.
+  const code = data?.current.code
+  const windKph = data?.current.windKph ?? 0
+  const windDirDeg = data?.current.windDirDeg ?? 270
+  useEffect(() => {
+    skyStore.set(
+      { sky, gradient, intensity: code === undefined ? 0 : precipIntensity(code), windKph: Math.round(windKph), windDirDeg: Math.round(windDirDeg) },
+      { onlyIfEmpty: code === undefined },
+    )
+  }, [sky, gradient, code, windKph, windDirDeg])
+
   useEffect(() => {
     const meta = document.querySelector('meta[name="theme-color"]')
     meta?.setAttribute('content', gradient.match(/#[0-9a-f]{6}/i)?.[0] ?? '#1d5fae')
@@ -37,7 +46,6 @@ export function WeatherView({ name, lat, lon, isHere, prefs }: { name: string; l
 
   return (
     <>
-      <Sky sky={sky} gradient={gradient} reducedMotion={reduced} />
       {data && (
         <div
           className={`glass-bar text-shadow fixed inset-x-0 top-0 z-10 px-4 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2 text-center transition-opacity duration-200 lg:left-[340px] ${scrolled ? 'opacity-100' : 'pointer-events-none opacity-0'}`}

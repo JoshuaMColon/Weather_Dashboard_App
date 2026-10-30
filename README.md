@@ -1,5 +1,7 @@
 # Weather — an iPhone-style weather app for the web
 
+[![CI](https://github.com/JoshuaMColon/Weather_Dashboard_App/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JoshuaMColon/Weather_Dashboard_App/actions/workflows/ci.yml)
+
 **Live:** https://weather-dashboard-app-sable-three.vercel.app · **Try it signed in, no sign-up needed:** [/demo](https://weather-dashboard-app-sable-three.vercel.app/demo)
 
 A full-stack weather app modeled on the iOS Weather app. It has animated skies that follow each city's real conditions and day/night cycle, an hourly strip with sunrise and sunset markers, a 10-day range chart, and ten detail tiles. Your city list syncs across devices in real time when you sign in. Weather data comes from [Open-Meteo](https://open-meteo.com/), so **no weather API key is needed**.
@@ -93,9 +95,26 @@ To set up the database, apply the SQL in `supabase/migrations/` (Supabase CLI `s
 | `npm run typecheck` / `npm run lint` | TypeScript and ESLint |
 | `npm test` | Playwright end-to-end tests: builds, serves `vite preview`, and mocks `/api` with deterministic fixtures |
 | `SHOTS_DIR=./shots npx playwright test screenshots` | Regenerates the portfolio screenshots (mobile 390×844, desktop 1440×900) |
+| `ANIM_DIR=./anim npx playwright test anim-shots` | Captures animated-sky stills and short clips for each condition |
 | `ASSETS=1 npx playwright test assets` | Regenerates `public/og.png` and `public/apple-touch-icon.png` |
 
 The tests cover the forecast render, day/night sky selection, search → preview → add, unit switching, notable-change banners, API error recovery, `/demo`, mobile page dots and the list, reduced motion, and axe WCAG A/AA scans on four different skies. GitHub Actions (`.github/workflows/ci.yml`) runs typecheck, lint, build and the e2e suite on every push and pull request.
+
+## Project structure
+
+```text
+api/              Vercel Functions: weather, geocode, reverse-geocode (+ _lib for HTTP helpers and Open-Meteo normalising)
+src/
+  components/     Sky canvas, Hero, Hourly/Daily cards, Tiles, Notables, CityList, SearchBox, AccountSheet, WeatherIcon
+  hooks/          useWeather, usePlaces, useAuth, usePreferences, plus motion helpers (reduced motion, pause off-screen, tween)
+  lib/
+    sky/          Canvas scene engine and pre-rendered sprites
+    …             API client, Supabase client, insights (notable changes), moon phase, time, storage
+supabase/
+  migrations/     weather schema, RLS, city cap trigger, security_invoker views, Realtime
+e2e/              Playwright specs and deterministic API fixtures
+docs/screenshots/ Images used in this README
+```
 
 ## Deploying
 

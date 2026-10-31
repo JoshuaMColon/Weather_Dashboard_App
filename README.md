@@ -26,7 +26,7 @@ A full-stack weather app modeled on the iOS Weather app. It has animated skies t
 - **Cities.** Geocoding autocomplete (an ARIA combobox with arrow keys, Enter and Escape), a locate-me button, a preview before adding, and reorder/delete in Edit mode. Mini cards show each city's own sky and local time. On desktop the list is a sidebar. On mobile there's a bottom bar with page dots, swipe between cities, and a full-screen list.
 - **Accounts.** Sign in with email and password, or tap **Try as guest** (Supabase anonymous auth). Cities you saved while signed out merge into your account. Changes sync live across tabs and devices through Supabase Realtime. Unit preferences (°F/°C and mph, km/h, m/s or knots) and the background theme follow your account.
 - **Works without an account or a backend.** Signed out, everything lives in `localStorage`. If `/api` isn't available (for example on a static host), the client calls Open-Meteo directly.
-- **Polish.** Press feedback on every control (including iOS taps), mobile-first layout, WCAG 2.1 AA (axe-checked in CI), the SF Pro system font with Inter as a fallback, SEO/Open Graph/JSON-LD metadata, a web manifest and theme-color that follows the sky.
+- **Polish.** Press feedback on every control (including iOS taps), tooltips on icon-only buttons (hover or keyboard focus, announced to screen readers, Esc to close, never from a tap), mobile-first layout, WCAG 2.1 AA (axe-checked in CI), the SF Pro system font with Inter as a fallback, SEO/Open Graph/JSON-LD metadata, a web manifest and theme-color that follows the sky.
 
 ## Architecture
 

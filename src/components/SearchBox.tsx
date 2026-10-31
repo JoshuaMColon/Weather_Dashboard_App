@@ -101,7 +101,6 @@ export function SearchBox({ onPick, onLocate, locating, locateStatus, onActiveCh
           onClick={onLocate}
           className="press grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/15"
           aria-label="Use my location"
-          title="Use my location"
           data-testid="locate"
         >
           {locating ? <Loader2 size={18} className="animate-spin" aria-hidden="true" /> : <LocateFixed size={18} aria-hidden="true" />}

@@ -187,7 +187,7 @@ export default function App() {
         )}
       </main>
 
-      {!preview && <Toolbar count={all.length} index={index} hasHere={!!geo.here} onDot={(i) => all[i] && select(keyOf(all[i]))} onList={() => setListOpen(true)} onAccount={() => setAccountOpen(true)} />}
+      {!preview && <Toolbar count={all.length} index={index} hasHere={!!geo.here} names={all.map((p) => p.name)} onDot={(i) => all[i] && select(keyOf(all[i]))} onList={() => setListOpen(true)} onAccount={() => setAccountOpen(true)} />}
 
       <AccountSheet open={accountOpen} onClose={() => setAccountOpen(false)} auth={auth} prefs={prefs} onPrefs={update} />
 

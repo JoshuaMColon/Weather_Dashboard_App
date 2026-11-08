@@ -1,6 +1,7 @@
--- The `weather` schema isn't in the Data API's exposed schemas (a dashboard-only setting),
--- so expose it through thin, auto-updatable views. security_invoker = true means the
--- caller's RLS policies on weather.* tables apply; the views add no privileges.
+-- The weather schema isn't in the Data API's exposed schemas. That list is a
+-- dashboard setting, so this migration can't add it. These views are the surface
+-- the client uses. security_invoker = true means Postgres checks the caller's
+-- RLS on weather.*, not the view owner's. The views add no privileges of their own.
 create view public.weather_saved_locations with (security_invoker = true) as
   select id, user_id, name, lat, lon, country, admin1, sort_order, created_at
   from weather.saved_locations;

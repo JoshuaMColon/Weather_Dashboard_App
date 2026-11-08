@@ -10,6 +10,12 @@ interface Row {
   theme: Preferences['theme']
 }
 
+/**
+ * Units and theme. localStorage applies immediately, including before auth
+ * resolves, so a toggle never waits on the network. Once there's a user I
+ * read their row. No row yet means first sign-in: I push the device choices
+ * up so the account doesn't snap back to °F.
+ */
 export function usePreferences(user: User | null) {
   const [prefs, setPrefs] = useState<Preferences>(() => ({ ...DEFAULT_PREFS, ...load<Partial<Preferences>>('wx:prefs', {}) }))
   const uid = user?.id ?? null
@@ -28,7 +34,7 @@ export function usePreferences(user: User | null) {
           setPrefs(next)
           save('wx:prefs', next)
         } else {
-          // First sign-in: carry the device's choices into the account.
+          // No row yet, so this upsert inserts. user_id defaults to auth.uid() in the table.
           const local = { ...DEFAULT_PREFS, ...load<Partial<Preferences>>('wx:prefs', {}) }
           await supabase!.from(TABLES.prefs).upsert({ units: local.units, wind_unit: local.windUnit, theme: local.theme })
         }
@@ -43,6 +49,7 @@ export function usePreferences(user: User | null) {
       setPrefs((prev) => {
         const next = { ...prev, ...patch }
         save('wx:prefs', next)
+        // Local first, then upsert. The control doesn't wait on the round trip.
         if (supabase && uid) {
           void supabase.from(TABLES.prefs).upsert({ user_id: uid, units: next.units, wind_unit: next.windUnit, theme: next.theme })
         }

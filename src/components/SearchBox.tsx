@@ -11,7 +11,11 @@ interface Props {
   onActiveChange?: (active: boolean) => void
 }
 
-/** Debounced geocoding autocomplete as an ARIA combobox. */
+/**
+ * City search as an ARIA combobox. I debounce 250ms and abort the in-flight
+ * request so a fast typist doesn't geocode every keystroke. Under two
+ * characters I don't ask; the API rejects those queries anyway.
+ */
 export function SearchBox({ onPick, onLocate, locating, locateStatus, onActiveChange }: Props) {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<GeocodeResult[]>([])
@@ -41,6 +45,8 @@ export function SearchBox({ onPick, onLocate, locating, locateStatus, onActiveCh
         })
     }, 250)
     return () => {
+      // Abort the previous query. The catch below ignores AbortError so a
+      // cancelled keystroke doesn't flash "Search is unavailable".
       ctrl.abort()
       window.clearTimeout(t)
     }
@@ -123,6 +129,7 @@ export function SearchBox({ onPick, onLocate, locating, locateStatus, onActiveCh
               id={`${listId}-${i}`}
               role="option"
               aria-selected={i === active}
+              // Keep the input focused. A blur would unmount this list before the click lands.
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => pick(r)}
               className={`press cursor-pointer border-t border-white/10 px-4 py-2.5 first:border-t-0 ${i === active ? 'bg-white/20' : 'hover:bg-white/10'}`}

@@ -1,6 +1,13 @@
 import { InputError, UpstreamError } from './openMeteo.js'
 
-/** JSON response with CDN caching: browsers keep it briefly, Vercel's edge keeps it longer. */
+/**
+ * Cache-Control for /api.
+ * Browsers only hold a hit for a minute, so a manual refresh still sees new
+ * weather. The edge holds it for sMaxAge and may serve that copy while it
+ * revalidates (stale-while-revalidate). A burst of visitors on one city is
+ * one upstream fetch, not one per browser. Errors are no-store so a 502
+ * doesn't get pinned in the CDN.
+ */
 export function json(body: unknown, init: { status?: number; sMaxAge?: number; swr?: number } = {}): Response {
   const { status = 200, sMaxAge = 600, swr = 1800 } = init
   const headers = new Headers({ 'Content-Type': 'application/json; charset=utf-8' })
@@ -12,6 +19,11 @@ export function json(body: unknown, init: { status?: number; sMaxAge?: number; s
   return new Response(JSON.stringify(body), { status, headers })
 }
 
+/**
+ * Bad input is the caller's mistake (400). An upstream failure is a 502 and
+ * I pass my own message, not the raw body. Anything else is a 500 with a
+ * generic line; the real error stays in the function log.
+ */
 export function errorResponse(err: unknown): Response {
   if (err instanceof InputError) return json({ error: { code: 'bad_request', message: err.message } }, { status: 400 })
   if (err instanceof UpstreamError) return json({ error: { code: 'upstream_error', message: err.message } }, { status: 502 })

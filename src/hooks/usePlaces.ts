@@ -4,6 +4,20 @@ import { supabase, TABLES } from '../lib/supabase'
 import { load, save } from '../lib/storage'
 import { round4, SAMPLE_PLACES, samePlace, type Place } from '../lib/places'
 
+/**
+ * The city list.
+ * Signed out, `wx:places` in localStorage is the source of truth. Signed in,
+ * the account is, and a per-user cache lets the list paint before the round trip.
+ *
+ * On sign-in I upsert the cities that were actually stored on the device.
+ * ignoreDuplicates on (user_id, lat, lon) leaves an account's existing order
+ * alone when the device has the same city. The 25-city cap is a Postgres
+ * trigger, not a check in this hook.
+ *
+ * Realtime listens on weather.saved_locations (the table), even though writes
+ * go through the public view. I debounce 150ms and refetch: a reorder updates
+ * two rows, and the event is not the ordered list I render.
+ */
 const LOCAL_KEY = 'wx:places'
 type SyncState = 'local' | 'syncing' | 'synced' | 'error'
 
@@ -23,7 +37,8 @@ const localId = () => `local-${Math.random().toString(36).slice(2, 10)}`
 function loadLocal(): Place[] {
   const stored = load<Place[] | null>(LOCAL_KEY, null)
   if (stored) return stored
-  // First visit: start with a few sample cities so the app never opens empty.
+  // Nothing stored yet. Three sample cities so the app doesn't open empty.
+  // They stay in memory until an edit, a sign-out copy, or /demo writes wx:places.
   return SAMPLE_PLACES.slice(0, 3).map((p, i) => ({ ...p, id: localId(), sortOrder: i }))
 }
 
@@ -36,7 +51,8 @@ export function usePlaces(user: User | null) {
     placesRef.current = places
   }, [places])
 
-  // Reset synchronously when the signed-in user changes (derived state pattern).
+  // Derived state, same idea as the weather hook. A new user must not render
+  // the previous account's cities for a frame. The per-user cache fills that frame.
   const [prevUid, setPrevUid] = useState(uid)
   if (prevUid !== uid) {
     setPrevUid(uid)
@@ -49,6 +65,7 @@ export function usePlaces(user: User | null) {
     const { data, error } = await supabase
       .from(TABLES.locations)
       .select('id, name, lat, lon, country, admin1, sort_order')
+      // created_at breaks ties when two rows share a sort_order.
       .order('sort_order')
       .order('created_at')
       .returns<Row[]>()
@@ -64,7 +81,11 @@ export function usePlaces(user: User | null) {
     const client = supabase
     let alive = true
     ;(async () => {
+      // Stored cities only. The in-memory starter list is not in wx:places until something saves it.
       const pending = load<Place[] | null>(LOCAL_KEY, null) ?? []
+      // /demo sets this before the anonymous user exists. uid is real by the time
+      // we get here. Fold the samples into this upsert once, then clear the flag
+      // so a later sign-in in this tab doesn't add them again.
       if (sessionStorage.getItem('wx:demo') === '1') {
         sessionStorage.removeItem('wx:demo')
         SAMPLE_PLACES.forEach((s) => {
@@ -76,7 +97,8 @@ export function usePlaces(user: User | null) {
           pending.map((p, i) => ({ name: p.name, lat: round4(p.lat), lon: round4(p.lon), country: p.country, admin1: p.admin1, sort_order: i })),
           { onConflict: 'user_id,lat,lon', ignoreDuplicates: true },
         )
-        // Merged: the account is now the source of truth for these cities.
+        // Merged. Drop the device copy so it isn't upserted again on the next sign-in.
+        // A failure (the 25-city trigger, a network drop) leaves wx:places in place.
         if (!error) save(LOCAL_KEY, [])
       }
       if (alive) await fetchRemote()
@@ -85,6 +107,7 @@ export function usePlaces(user: User | null) {
     let timer: number | undefined
     const channel = client
       .channel(`wx-places-${uid}`)
+      // Table, not the view. The filter is this user only; RLS also applies on the server.
       .on('postgres_changes', { event: '*', schema: 'weather', table: 'saved_locations', filter: `user_id=eq.${uid}` }, () => {
         window.clearTimeout(timer)
         timer = window.setTimeout(() => void fetchRemote(), 150)
@@ -94,7 +117,8 @@ export function usePlaces(user: User | null) {
       alive = false
       window.clearTimeout(timer)
       void client.removeChannel(channel)
-      // Signing out keeps a copy of the account's cities on this device.
+      // Subscription going away: if the device list is empty, keep the account's
+      // cities locally. Sign-out still has something to show, and the next sign-in merges it.
       if (placesRef.current.length && !(load<Place[] | null>(LOCAL_KEY, null) ?? []).length) save(LOCAL_KEY, placesRef.current)
     }
   }, [uid, fetchRemote])
@@ -110,6 +134,8 @@ export function usePlaces(user: User | null) {
       const current = placesRef.current
       if (current.some((x) => samePlace(x, p))) return
       const sortOrder = current.reduce((m, x) => Math.max(m, x.sortOrder), -1) + 1
+      // Paint first with a local-* id. fetchRemote swaps in the uuid after the upsert.
+      // On failure I keep the optimistic row and flag sync; the city shouldn't disappear.
       const optimistic: Place = { ...p, lat: round4(p.lat), lon: round4(p.lon), id: localId(), sortOrder }
       persistLocal([...current, optimistic])
       if (supabase && uid) {
@@ -128,6 +154,7 @@ export function usePlaces(user: User | null) {
   const remove = useCallback(
     async (id: string) => {
       persistLocal(placesRef.current.filter((p) => p.id !== id))
+      // A local-* id was never confirmed. Deleting it is a local change only.
       if (supabase && uid && !id.startsWith('local-')) {
         const { error } = await supabase.from(TABLES.locations).delete().eq('id', id)
         if (error) setSync('error')
@@ -144,6 +171,7 @@ export function usePlaces(user: User | null) {
       const j = i + dir
       if (i < 0 || j < 0 || j >= list.length) return
       ;[list[i], list[j]] = [list[j], list[i]]
+      // Renumber the whole list so sortOrder stays dense. Only the two moved rows are written.
       const next = list.map((p, k) => ({ ...p, sortOrder: k }))
       persistLocal(next)
       if (supabase && uid) {

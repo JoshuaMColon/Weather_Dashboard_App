@@ -13,6 +13,17 @@ export interface AuthApi {
   signOut: () => Promise<void>
 }
 
+/**
+ * Session for the account sheet. `ready` starts true when Supabase isn't
+ * configured, so /demo doesn't sit waiting on a client that will never resolve.
+ * getSession() fills the first paint. onAuthStateChange keeps it current
+ * after that, including sign-in and sign-out.
+ * Guest is an anonymous user (is_anonymous), a real row with the same RLS as
+ * a password account. "Try as guest" does not seed sample cities; /demo does.
+ * null from signIn/signUp/startGuest means the sheet can close. A string is
+ * shown in place: an auth error, or the confirm-your-email line when sign-up
+ * didn't hand back a session.
+ */
 export function useAuth(): AuthApi {
   const [session, setSession] = useState<Session | null>(null)
   const [ready, setReady] = useState(!supabase)

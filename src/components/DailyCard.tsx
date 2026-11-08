@@ -8,6 +8,12 @@ import { WeatherIcon } from './WeatherIcon'
 import { Card } from './Card'
 import { usePauseOffscreen } from '../hooks/usePauseOffscreen'
 
+/**
+ * One scale for all 10 days, taken from the week's low and high, so a mild
+ * week doesn't draw every bar full-width. The white dot is today's current
+ * temperature on that same scale. Precip prints from 30% up, rounded to the
+ * nearest 10.
+ */
 export function DailyCard({ w, prefs }: { w: WeatherResponse; prefs: Preferences }) {
   const days = w.daily.slice(0, 10)
   const lo = Math.min(...days.map((d) => d.minC))

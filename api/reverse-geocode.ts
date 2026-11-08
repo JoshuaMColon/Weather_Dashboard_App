@@ -1,7 +1,11 @@
 import { parseCoord, reverseGeocode } from './_lib/openMeteo.js'
 import { errorResponse, json } from './_lib/http.js'
 
-/** GET /api/reverse-geocode?lat&lon → the place name for "My Location". */
+/**
+ * GET /api/reverse-geocode?lat&lon → the place name for "My Location".
+ * Same long cache as search. A GPS fix rounded to ~1 km is stable, and this
+ * is the call I most want on the server: Nominatim, not the browser.
+ */
 export async function GET(request: Request): Promise<Response> {
   try {
     const url = new URL(request.url)

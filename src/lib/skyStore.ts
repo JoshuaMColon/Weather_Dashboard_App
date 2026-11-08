@@ -2,8 +2,9 @@ import { useSyncExternalStore } from 'react'
 import type { SkyState } from './sky'
 
 /**
- * The sky is rendered once at the app root so it survives city switches and can
- * crossfade between scenes; the visible WeatherView publishes what it shows here.
+ * One canvas lives on the app root so it can crossfade when the city changes.
+ * WeatherView publishes the scene; the canvas subscribes. I keep this outside
+ * React state so a new forecast doesn't remount the canvas and restart every particle.
  */
 export interface SkyScene {
   sky: SkyState
@@ -22,6 +23,8 @@ const same = (a: SkyScene | null, b: SkyScene) =>
 export const skyStore = {
   get: () => current,
   set(next: SkyScene, { onlyIfEmpty = false } = {}) {
+    // A loading city publishes a fallback only when nothing is up yet, so the
+    // previous city's sky stays put instead of flashing the placeholder.
     if (onlyIfEmpty && current) return
     if (same(current, next)) return
     current = next

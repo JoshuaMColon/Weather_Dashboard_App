@@ -4,8 +4,9 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 /**
- * Runs the Vercel functions in /api locally (`npm run dev` and `npm run preview`),
- * so the full stack works without `vercel dev` or a Vercel login.
+ * Serves the Vercel functions in /api during `npm run dev` and `npm run preview`.
+ * Same handlers as production, so the local client isn't talking to a second
+ * weather implementation that can drift from what the edge runs.
  */
 function localApi(): Plugin {
   const handler =
@@ -38,7 +39,8 @@ function localApi(): Plugin {
       s.middlewares.use(handler((p) => server!.ssrLoadModule(p)))
     },
     async configurePreviewServer(s) {
-      // Preview has no module graph, so spin up a tiny SSR loader for /api.
+      // Preview serves built files and has no module graph, so I spin up a
+      // tiny SSR loader just to import the /api handlers.
       const { createServer } = await import('vite')
       const loader = await createServer({ server: { middlewareMode: true }, appType: 'custom', configFile: false, logLevel: 'error' })
       s.middlewares.use(handler((p) => loader.ssrLoadModule(p)))

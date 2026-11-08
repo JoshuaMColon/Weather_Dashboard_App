@@ -65,6 +65,7 @@ export function CityList(p: Props) {
         <ul ref={list} className="no-scrollbar flex-1 space-y-2.5 overflow-y-auto px-4 pb-6">
           {all.map((place, i) => (
             <li key={place.id} className="flex items-center gap-2">
+              {/* "here" is the GPS pin, not a saved row, so Edit can't remove it. */}
               {editing && place.id !== 'here' && (
                 <button type="button" onClick={() => p.onRemove(place.id)} className="press shrink-0 text-[#ff6b5f]" aria-label={`Remove ${place.name}`}>
                   <MinusCircle size={24} className="fill-[#ff453a] text-white" aria-hidden="true" />
@@ -73,6 +74,7 @@ export function CityList(p: Props) {
               <MiniCard place={place} prefs={p.prefs} selected={place.id === p.selectedId} onClick={() => p.onSelect(place.id)} />
               {editing && place.id !== 'here' && (
                 <span className="flex shrink-0 flex-col">
+                  {/* First saved city sits at index 1 when My Location is pinned above the list. */}
                   <button type="button" className="press p-1 disabled:opacity-30" disabled={i === (p.here ? 1 : 0)} onClick={() => p.onMove(place.id, -1)} aria-label={`Move ${place.name} up`}>
                     <ChevronUp size={20} aria-hidden="true" />
                   </button>

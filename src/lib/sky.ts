@@ -9,7 +9,12 @@ export interface SkyState {
   key: string
 }
 
-/** Day/night/twilight from the location's own sunrise and sunset, not the viewer's clock. */
+/**
+ * Day, night, or twilight from this city's sunrise and sunset, not the laptop clock.
+ * A city ahead of me should already be night. Twilight is the 40 minutes either
+ * side of those times. Outside that window I trust the sun times over is_day,
+ * which flips on the hour and looks wrong near the horizon.
+ */
 export function skyState(w: WeatherResponse, at = nowUnix()): SkyState {
   const kind = codeInfo(w.current.code).kind
   const today = w.daily.find((d) => at >= d.time && at < d.time + 86400) ?? w.daily[0]
@@ -49,6 +54,8 @@ const GRADIENTS: Record<string, string> = {
 }
 
 export function skyGradient(s: SkyState, theme: 'dynamic' | 'midnight' = 'dynamic'): string {
+  // Midnight is a user override and ignores the condition. Most kinds have no
+  // twilight gradient of their own, so they fall through to that kind's night.
   if (theme === 'midnight') return 'linear-gradient(180deg, #000 0%, #0a0c12 100%)'
   if (s.period === 'twilight') {
     return GRADIENTS[`${s.kind}-twilight`] ?? GRADIENTS[`${s.kind}-night`] ?? GRADIENTS['clear-twilight']
@@ -56,7 +63,7 @@ export function skyGradient(s: SkyState, theme: 'dynamic' | 'midnight' = 'dynami
   return GRADIENTS[s.key] ?? GRADIENTS['cloudy-day']
 }
 
-/** Colour for a temperature in °C, used by the 10-day range bars. */
+/** Continuous °C color for the 10-day bars. Stops are interpolated so a mild week isn't seven hard bands. */
 export function tempColor(c: number): string {
   const stops: Array<[number, [number, number, number]]> = [
     [-20, [129, 108, 255]],
@@ -79,7 +86,10 @@ export function tempColor(c: number): string {
   return `rgb(${stops[stops.length - 1][1].join(',')})`
 }
 
-/** 0..1 precipitation intensity from the WMO code (light → heavy), used to scale rain/snow. */
+/**
+ * 0..1 from the WMO code, light to heavy. The canvas only reads this for wet
+ * kinds, so the 0.5 default for an unlisted code never paints rain on a clear sky.
+ */
 export function precipIntensity(code: number): number {
   const table: Record<number, number> = {
     51: 0.3, 53: 0.5, 55: 0.7, 56: 0.4, 57: 0.7,

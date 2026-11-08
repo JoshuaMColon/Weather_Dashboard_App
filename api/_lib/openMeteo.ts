@@ -1,10 +1,13 @@
 /**
- * Open-Meteo client + response normalizer.
+ * Open-Meteo client and the normalizer that turns its payload into what the UI renders.
  *
- * Shared by the Vercel functions in /api (server) and by the browser as a
- * fallback when /api isn't available (e.g. the static GitHub Pages build).
- * Open-Meteo is free and needs no API key. Everything is fetched in metric
- * units; the UI converts, so one cached response serves every unit choice.
+ * There is no weather API key to hide. Open-Meteo is keyless, so the thing I keep
+ * off the browser is Nominatim: their usage policy wants an identifying User-Agent
+ * and they block anonymous browser traffic. Forecast and search can fall back to a
+ * direct call when /api is missing (a static host). Reverse geocoding never does.
+ *
+ * I always request metric. The UI converts to °F or mph, so one cached body covers
+ * every unit choice instead of a cache entry per preference.
  */
 
 export interface CurrentConditions {
@@ -105,7 +108,11 @@ const AIR_URL = 'https://air-quality-api.open-meteo.com/v1/air-quality'
 const GEOCODE_URL = 'https://geocoding-api.open-meteo.com/v1/search'
 const REVERSE_URL = 'https://nominatim.openstreetmap.org/reverse'
 
-/** Parse and validate a coordinate; rounds to 2 decimals (~1 km) so CDN caches are shared. */
+/**
+ * Validate a coordinate and round to 2 decimals (~1 km).
+ * Nearby lookups then share one CDN entry. That shared cache is how I stay
+ * polite to Open-Meteo; I don't run a rate limiter of my own.
+ */
 export function parseCoord(raw: string | null, kind: 'lat' | 'lon'): number {
   if (raw === null || raw.trim() === '') throw new InputError(`Missing "${kind}" query parameter`)
   const n = Number(raw)
@@ -118,11 +125,13 @@ export function parseCoord(raw: string | null, kind: 'lat' | 'lon'): number {
 
 export function parseQuery(raw: string | null): string {
   const q = (raw ?? '').replace(/\s+/g, ' ').trim()
+  // Short queries match half the planet, and a long one is someone pasting a sentence.
   if (q.length < 2) throw new InputError('"q" must be at least 2 characters')
   if (q.length > 80) throw new InputError('"q" must be at most 80 characters')
   return q
 }
 
+/** 8s cap. A hung upstream should become a 502 the UI can retry, not a function that sits until the platform kills it. */
 async function getJson<T>(url: string, init?: RequestInit): Promise<T> {
   let res: Response
   try {
@@ -134,6 +143,7 @@ async function getJson<T>(url: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T
 }
 
+// A missing or non-finite field becomes the fallback (0 unless I pass one) so the UI never renders NaN.
 const num = (v: unknown, fallback = 0): number => (typeof v === 'number' && Number.isFinite(v) ? v : fallback)
 
 interface RawForecast {
@@ -148,6 +158,11 @@ interface RawForecast {
   daily: Record<string, number[]>
 }
 
+/**
+ * One forecast call covers current conditions, the previous 24h (pressure trend
+ * and "already rained"), the next 48h, and 10 days. Air quality is a second host.
+ * If that call fails I still return the forecast; the AQI tile just stays empty.
+ */
 export async function fetchWeather(lat: number, lon: number): Promise<WeatherResponse> {
   const forecastParams = new URLSearchParams({
     latitude: String(lat),
@@ -177,12 +192,20 @@ export async function fetchWeather(lat: number, lon: number): Promise<WeatherRes
 
   const [raw, air] = await Promise.all([
     getJson<RawForecast>(`${FORECAST_URL}?${forecastParams}`),
-    // Air quality is a nice-to-have: never fail the whole response over it.
+    // Nice-to-have. A 502 from the air-quality host must not take the forecast down with it.
     getJson<{ current?: Record<string, number> }>(`${AIR_URL}?${airParams}`).catch(() => null),
   ])
   return normalizeWeather(raw, air?.current ?? null)
 }
 
+/**
+ * Zip Open-Meteo's parallel arrays into points, then cut the hourly series at
+ * the current hour. past_hours is only there for the 24h precip total and the
+ * 3-hour pressure trend; the strip itself is the next 48 hours.
+ * Visibility falls back to 10 km so a gap doesn't render as zero visibility.
+ * Feels-like falls back to the actual temperature. UV falls back to this
+ * hour's hourly value when the current block doesn't carry one.
+ */
 export function normalizeWeather(raw: RawForecast, air: Record<string, number> | null): WeatherResponse {
   const c = raw.current
   const h = raw.hourly
@@ -204,6 +227,7 @@ export function normalizeWeather(raw: RawForecast, air: Record<string, number> |
   const sum = (pts: HourlyPoint[]) => Math.round(pts.reduce((a, p) => a + p.precipMm, 0) * 10) / 10
 
   const pressureNow = num(c.pressure_msl)
+  // startIdx is "now", so three slots back is three hours ago. No sample means a flat trend.
   const pressure3hAgo = h.pressure_msl?.[startIdx - 3]
   const pressureTrend = typeof pressure3hAgo === 'number' ? Math.round((pressureNow - pressure3hAgo) * 10) / 10 : 0
 
@@ -272,6 +296,11 @@ interface RawGeocode {
   }>
 }
 
+/**
+ * City search. Four decimals (~10 m) is plenty for a pin and matches the
+ * numeric(7,4) columns, so the same place round-trips to one upsert key
+ * instead of a new row every time the float wobbles.
+ */
 export async function geocode(q: string, count = 8): Promise<GeocodeResult[]> {
   const params = new URLSearchParams({ name: q, count: String(count), language: 'en', format: 'json' })
   const raw = await getJson<RawGeocode>(`${GEOCODE_URL}?${params}`)
@@ -293,7 +322,11 @@ interface RawReverse {
   address?: Record<string, string>
 }
 
-/** Reverse geocoding via OpenStreetMap Nominatim (server-side only, cached a day by the CDN). */
+/**
+ * Reverse geocoding via Nominatim. Server only: the User-Agent below is the
+ * identification their policy requires, and the browser client never calls this.
+ * zoom=10 is city-level, which is the label "My Location" should get.
+ */
 export async function reverseGeocode(lat: number, lon: number): Promise<ReverseGeocodeResult> {
   const params = new URLSearchParams({ lat: String(lat), lon: String(lon), format: 'jsonv2', zoom: '10', 'accept-language': 'en' })
   const raw = await getJson<RawReverse>(`${REVERSE_URL}?${params}`, {

@@ -10,9 +10,13 @@ export interface Notable {
 }
 
 /**
- * "Notable change" banners computed from the forecast itself (these are not
- * official government alerts): precipitation starting soon, storms, strong gusts,
- * extreme heat or cold.
+ * Banners I derive from the forecast. These are not NWS alerts. I don't have
+ * a warnings feed, and a threshold is not an official watch.
+ * A storm in the next 12 hours is a warning. Rain or snow starting inside
+ * 3 hours (at least a 55% chance) is a watch, but only when it isn't already
+ * wet. If it is wet, I look for the hour it dries out instead of announcing
+ * rain that's already falling. Gusts from 64 km/h, AQI over 100, and feels-like
+ * past 38°C or under -18°C are the other triggers.
  */
 export function notableChanges(w: WeatherResponse, prefs: Preferences): Notable[] {
   const off = w.location.utcOffsetSeconds
@@ -55,7 +59,11 @@ export function notableChanges(w: WeatherResponse, prefs: Preferences): Notable[
   return out
 }
 
-/** The one-line summary that sits at the top of the hourly card, like iOS. */
+/**
+ * One line above the hourly strip. I describe the next change of weather kind
+ * inside 12 hours, or say the current condition holds. Gusts get a second
+ * sentence once the displayed wind value reaches 15, in whatever unit is selected.
+ */
 export function hourlySummary(w: WeatherResponse, prefs: Preferences): string {
   const off = w.location.utcOffsetSeconds
   const nowKind = codeInfo(w.current.code).kind

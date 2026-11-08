@@ -1,7 +1,13 @@
 import { fetchWeather, parseCoord } from './_lib/openMeteo.js'
 import { errorResponse, json } from './_lib/http.js'
 
-/** GET /api/weather?lat=40.71&lon=-74.01 → normalized current, 48h hourly, 10-day and air quality. */
+/**
+ * GET /api/weather?lat=40.71&lon=-74.01
+ * Validation and shaping live in openMeteo so the Vite dev plugin and the
+ * direct-call fallback run the same code as this function. Ten minutes at the
+ * edge, then thirty of stale-while-revalidate: a city people actually open
+ * should be a cache hit, and a refresh never waits on a cold origin.
+ */
 export async function GET(request: Request): Promise<Response> {
   try {
     const url = new URL(request.url)

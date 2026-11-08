@@ -33,6 +33,12 @@ function Segmented<T extends string>({ label, value, options, onChange }: { labe
   )
 }
 
+/**
+ * Account and unit preferences. Units stay editable when accounts are off,
+ * because they're a device setting first. Sign-in, sign-up, and guest close
+ * the sheet when the call returns null. A returned string stays on screen.
+ * "Try as guest" is an anonymous session only. Sample cities come from /demo.
+ */
 export function AccountSheet({ open, onClose, auth, prefs, onPrefs }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')

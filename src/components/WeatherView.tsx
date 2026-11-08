@@ -14,6 +14,11 @@ import { Tiles } from './Tiles'
 
 const FALLBACK_SKY = { kind: 'cloudy', period: 'night', key: 'cloudy-night' } as const
 
+/**
+ * One city. The hook returns cache immediately, so this skeleton only shows
+ * when there is nothing to paint yet. A failed refresh keeps the last good
+ * forecast on screen; the error state is for a city that never loaded.
+ */
 export function WeatherView({ name, lat, lon, isHere, prefs }: { name: string; lat: number; lon: number; isHere: boolean; prefs: Preferences }) {
   const { data, error, loading, refresh } = useWeather(lat, lon)
   const sky = data ? skyState(data) : FALLBACK_SKY
@@ -28,7 +33,8 @@ export function WeatherView({ name, lat, lon, isHere, prefs }: { name: string; l
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Publish the scene to the app-level sky so it can crossfade between cities.
+  // Publish upward. onlyIfEmpty while the code is still missing, so a loading
+  // city doesn't wipe the sky the user was just looking at.
   const code = data?.current.code
   const windKph = data?.current.windKph ?? 0
   const windDirDeg = data?.current.windDirDeg ?? 270
@@ -40,6 +46,8 @@ export function WeatherView({ name, lat, lon, isHere, prefs }: { name: string; l
   }, [sky, gradient, code, windKph, windDirDeg])
 
   useEffect(() => {
+    // Browser chrome follows the sky: the first 6-digit hex in the gradient.
+    // Midnight's first stop is #000, so the match lands on the next color.
     const meta = document.querySelector('meta[name="theme-color"]')
     meta?.setAttribute('content', gradient.match(/#[0-9a-f]{6}/i)?.[0] ?? '#1d5fae')
   }, [gradient])
@@ -82,6 +90,7 @@ export function WeatherView({ name, lat, lon, isHere, prefs }: { name: string; l
         ) : (
           <div className="text-shadow flex min-h-[70vh] flex-col items-center justify-center gap-3 text-center" role="status">
             <h1 className="text-[34px]">{name}</h1>
+            {/* error is only reached with no data. Try again calls refresh(), which bumps the fetch. */}
             {error && !loading ? (
               <>
                 <p className="flex items-center gap-2 text-[17px]">

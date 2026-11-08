@@ -19,6 +19,11 @@ export function json(body: unknown, init: { status?: number; sMaxAge?: number; s
   return new Response(JSON.stringify(body), { status, headers })
 }
 
+/**
+ * Bad input is the caller's mistake (400). An upstream failure is a 502 and
+ * I pass my own message, not the raw body. Anything else is a 500 with a
+ * generic line; the real error stays in the function log.
+ */
 export function errorResponse(err: unknown): Response {
   if (err instanceof InputError) return json({ error: { code: 'bad_request', message: err.message } }, { status: 400 })
   if (err instanceof UpstreamError) return json({ error: { code: 'upstream_error', message: err.message } }, { status: 502 })

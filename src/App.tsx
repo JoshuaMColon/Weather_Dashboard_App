@@ -12,6 +12,8 @@ import { Toolbar } from './components/Toolbar'
 import { WeatherView } from './components/WeatherView'
 import { Sky } from './components/Sky'
 
+// "here" stays one page even if the GPS fix drifts. Saved cities key on
+// rounded coordinates so the same place isn't two pages.
 const keyOf = (p: Pick<Place, 'lat' | 'lon' | 'id'>) => (p.id === 'here' ? 'here' : `${round4(p.lat)},${round4(p.lon)}`)
 const BASE = import.meta.env.BASE_URL
 
@@ -101,6 +103,7 @@ export default function App() {
   }
 
   const onPick = (r: GeocodeResult) => {
+    // Already saved: just show it. Otherwise preview, and only Add writes the city.
     const existing = places.find((p) => samePlace(p, r))
     if (existing) return select(keyOf(existing))
     setPreview(r)
@@ -110,6 +113,7 @@ export default function App() {
 
   const onLocate = () => {
     geo.locate()
+    // Select the slot immediately. The name fills in when the reverse geocode returns.
     select('here')
   }
 

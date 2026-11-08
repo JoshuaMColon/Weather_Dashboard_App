@@ -1,6 +1,13 @@
 import { InputError, UpstreamError } from './openMeteo.js'
 
-/** JSON response with CDN caching: browsers keep it briefly, Vercel's edge keeps it longer. */
+/**
+ * Cache-Control for /api.
+ * Browsers only hold a hit for a minute, so a manual refresh still sees new
+ * weather. The edge holds it for sMaxAge and may serve that copy while it
+ * revalidates (stale-while-revalidate). A burst of visitors on one city is
+ * one upstream fetch, not one per browser. Errors are no-store so a 502
+ * doesn't get pinned in the CDN.
+ */
 export function json(body: unknown, init: { status?: number; sMaxAge?: number; swr?: number } = {}): Response {
   const { status = 200, sMaxAge = 600, swr = 1800 } = init
   const headers = new Headers({ 'Content-Type': 'application/json; charset=utf-8' })

@@ -49,15 +49,22 @@ export default function App() {
     [all, index, select],
   )
 
-  // /demo: start a guest session (or a local sample set) so visitors see sync immediately.
+  // /demo is the front door that doesn't ask for an account. The flag is how the
+  // sample cities reach usePlaces, which only merges once a user id exists.
+  // auth is a new object every render, so the ref stops a second guest when
+  // startGuest() itself causes this effect to run again.
   const demoStarted = useRef(false)
   useEffect(() => {
     if (demoStarted.current || !auth.ready) return
     if (!window.location.pathname.replace(/\/+$/, '').endsWith('/demo')) return
     demoStarted.current = true
     sessionStorage.setItem('wx:demo', '1')
+    // Drop /demo so a refresh doesn't mint another anonymous user.
     window.history.replaceState(null, '', BASE)
     const run = async () => {
+      // Already signed in, or no Supabase on this deploy: add the samples
+      // through the normal list. Otherwise start the anonymous session and
+      // let usePlaces do the insert once uid exists.
       if (auth.enabled && !auth.user) {
         const err = await auth.startGuest()
         setToast(err ? `Couldn't start a guest session: ${err}` : 'You are signed in as a guest. Sample cities were added and sync live.')
@@ -88,6 +95,9 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey)
   }, [go, preview, listOpen])
 
+  // Horizontal swipe changes cities. A gesture that starts on the hourly strip
+  // belongs to that scroller, and a preview shouldn't be flicked away.
+  // 60px and mostly-horizontal, so a vertical scroll doesn't turn the page.
   const touch = useRef<{ x: number; y: number } | null>(null)
   const onTouchStart = (e: TouchEvent) => {
     const t = e.touches[0]
@@ -176,6 +186,7 @@ export default function App() {
                 Add
               </button>
             </div>
+            {/* Keyed by place so scroll position and the sky publish don't carry over from the previous city. */}
             <WeatherView key={`p-${preview.id}`} name={preview.name} lat={preview.lat} lon={preview.lon} isHere={false} prefs={prefs} />
           </>
         ) : current ? (

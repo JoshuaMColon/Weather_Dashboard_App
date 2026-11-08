@@ -83,6 +83,9 @@ export function usePlaces(user: User | null) {
     ;(async () => {
       // Stored cities only. The in-memory starter list is not in wx:places until something saves it.
       const pending = load<Place[] | null>(LOCAL_KEY, null) ?? []
+      // /demo sets this before the anonymous user exists. uid is real by the time
+      // we get here. Fold the samples into this upsert once, then clear the flag
+      // so a later sign-in in this tab doesn't add them again.
       if (sessionStorage.getItem('wx:demo') === '1') {
         sessionStorage.removeItem('wx:demo')
         SAMPLE_PLACES.forEach((s) => {

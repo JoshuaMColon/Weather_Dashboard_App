@@ -8,9 +8,9 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
  * access is RLS (auth.uid() = user_id) on the weather tables, guests included.
  * The service role key never ships to the browser.
  *
- * storageKey is `wx-auth` so this session is not written under Supabase's
- * default project key. This project is shared with another app, and the two
- * logins should not read as one.
+ * storageKey is `wx-auth` instead of Supabase's default project key, so this
+ * session has its own localStorage entry on an origin that also talks to
+ * this project.
  */
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined

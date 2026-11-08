@@ -1,4 +1,9 @@
-/** WMO weather interpretation codes (as used by Open-Meteo) → label + visual category. */
+/**
+ * WMO codes as Open-Meteo sends them. `kind` is the bucket the sky, the icons,
+ * and the banners share, so light rain and heavy showers animate the same way
+ * without each caller re-decoding the number. An unknown code reads as cloudy
+ * rather than taking the scene down.
+ */
 export type SkyKind = 'clear' | 'partly' | 'cloudy' | 'fog' | 'drizzle' | 'rain' | 'snow' | 'storm'
 
 interface CodeInfo {

@@ -41,7 +41,8 @@ export function Tiles({ w, prefs }: { w: WeatherResponse; prefs: Preferences }) 
   const today = w.daily[0]
   const tomorrow = w.daily[1]
 
-  // UV: "Use sun protection until 4PM" from the hourly UV curve.
+  // Sentences live here, not in the API. The forecast stays numeric.
+  // UV copy walks the next 18 hours and names the stretch where the index stays at 3 or above.
   const uvHigh = w.hourly.slice(0, 18).filter((h) => h.uvIndex >= 3)
   const uvFoot = uvHigh.length
     ? `Use sun protection${c.uvIndex >= 3 ? '' : ` from ${fmtHour(uvHigh[0].time, off)}`} until ${fmtHour(uvHigh[uvHigh.length - 1].time + 3600, off)}.`
@@ -57,9 +58,11 @@ export function Tiles({ w, prefs }: { w: WeatherResponse; prefs: Preferences }) 
   const visFoot = vis >= 16000 ? 'Perfectly clear view.' : vis >= 8000 ? 'Clear view.' : vis >= 3000 ? 'Haze is reducing visibility.' : 'Fog or precipitation is limiting visibility.'
 
   const press = fmtPressure(c.pressureHpa, u)
+  // Gauge span is 970–1050 hPa, the range a city actually sits in.
+  // Mapping the full meteorological scale would pin almost every place in the middle.
   const pressFrac = (c.pressureHpa - 970) / (1050 - 970)
 
-  // Sunrise/sunset arc: where the sun is between today's sunrise and sunset.
+  // Arc position is how far "now" is from today's sunrise to today's sunset, clamped to the arc.
   const now = nowUnix()
   const nextIsSunset = today && now >= today.sunrise && now < today.sunset
   const nextEvent = nextIsSunset ? { label: 'Sunset', t: today!.sunset } : now < (today?.sunrise ?? 0) ? { label: 'Sunrise', t: today!.sunrise } : { label: 'Sunrise', t: tomorrow?.sunrise ?? 0 }

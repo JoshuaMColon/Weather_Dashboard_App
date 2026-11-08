@@ -1,4 +1,7 @@
-/** Moon phase from a known new moon (2000-01-06 18:14 UTC); accurate to well under a day. */
+/**
+ * Moon phase from a known new moon (2000-01-06 18:14 UTC). No API for this:
+ * a fixed synodic month is close enough for a tile and doesn't add another upstream call.
+ */
 const SYNODIC = 29.530588853
 const KNOWN_NEW_MOON = Date.UTC(2000, 0, 6, 18, 14) / 1000
 

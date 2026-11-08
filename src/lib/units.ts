@@ -1,3 +1,10 @@
+/**
+ * Display conversion only. The stored forecast is always metric, so changing
+ * °F/°C or the wind unit never refetches.
+ * Precip, distance, and pressure follow the temperature choice: °F means the
+ * US set (inches, miles, inHg), °C means metric. Wind is its own preference
+ * because knots should still be available when the temperature is °F.
+ */
 export type TempUnit = 'F' | 'C'
 export type WindUnit = 'mph' | 'kmh' | 'ms' | 'kn'
 export type Theme = 'dynamic' | 'midnight'
@@ -26,7 +33,7 @@ export function fmtWind(kph: number, u: WindUnit): { value: number; unit: string
   }
 }
 
-/** Imperial when the user picks °F (US convention), metric otherwise. */
+/** °F selects inches. Amounts under 2.5 mm keep two decimals so a light rain doesn't collapse to 0″. */
 export const fmtPrecip = (mm: number, u: TempUnit) =>
   u === 'F' ? `${(mm / 25.4).toFixed(mm > 0 && mm < 2.5 ? 2 : 1).replace(/\.?0+$/, '') || '0'}″` : `${Math.round(mm * 10) / 10} mm`
 

@@ -143,6 +143,7 @@ async function getJson<T>(url: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T
 }
 
+// A missing or non-finite field becomes the fallback (0 unless I pass one) so the UI never renders NaN.
 const num = (v: unknown, fallback = 0): number => (typeof v === 'number' && Number.isFinite(v) ? v : fallback)
 
 interface RawForecast {
@@ -197,6 +198,14 @@ export async function fetchWeather(lat: number, lon: number): Promise<WeatherRes
   return normalizeWeather(raw, air?.current ?? null)
 }
 
+/**
+ * Zip Open-Meteo's parallel arrays into points, then cut the hourly series at
+ * the current hour. past_hours is only there for the 24h precip total and the
+ * 3-hour pressure trend; the strip itself is the next 48 hours.
+ * Visibility falls back to 10 km so a gap doesn't render as zero visibility.
+ * Feels-like falls back to the actual temperature. UV falls back to this
+ * hour's hourly value when the current block doesn't carry one.
+ */
 export function normalizeWeather(raw: RawForecast, air: Record<string, number> | null): WeatherResponse {
   const c = raw.current
   const h = raw.hourly
@@ -218,6 +227,7 @@ export function normalizeWeather(raw: RawForecast, air: Record<string, number> |
   const sum = (pts: HourlyPoint[]) => Math.round(pts.reduce((a, p) => a + p.precipMm, 0) * 10) / 10
 
   const pressureNow = num(c.pressure_msl)
+  // startIdx is "now", so three slots back is three hours ago. No sample means a flat trend.
   const pressure3hAgo = h.pressure_msl?.[startIdx - 3]
   const pressureTrend = typeof pressure3hAgo === 'number' ? Math.round((pressureNow - pressure3hAgo) * 10) / 10 : 0
 

@@ -1,4 +1,8 @@
-/** Formatting in the *location's* local time: unix seconds + the location's UTC offset. */
+/**
+ * Clocks in the city's own zone. Open-Meteo gives unix seconds plus that
+ * location's UTC offset, so I shift the timestamp and read UTC fields.
+ * Using the browser zone would show Tokyo in the viewer's afternoon.
+ */
 const shifted = (t: number, offset: number) => new Date((t + offset) * 1000)
 
 export function fmtHour(t: number, offset: number): string {

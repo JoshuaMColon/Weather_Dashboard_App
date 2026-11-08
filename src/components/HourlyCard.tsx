@@ -12,6 +12,11 @@ type Item =
   | { type: 'hour'; time: number; label: string; code: number; isDay: boolean; tempC: number; precipProb: number }
   | { type: 'sun'; time: number; label: string; event: 'Sunrise' | 'Sunset' }
 
+/**
+ * Hourly points with sunrise and sunset spliced in by timestamp, then sorted.
+ * The first slot is "Now" and uses the current observation. The hour bucket
+ * can be most of an hour older than what the hero is showing.
+ */
 export function HourlyCard({ w, prefs }: { w: WeatherResponse; prefs: Preferences }) {
   const off = w.location.utcOffsetSeconds
   const hours = w.hourly.slice(0, 25)

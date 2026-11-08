@@ -1,4 +1,7 @@
--- Weather Dashboard: everything lives in its own `weather` schema.
+-- Weather Dashboard. Own schema so this can share a Supabase project with another
+-- app and not mix tables. anon has no access. authenticated can DML, and the
+-- policies below still require auth.uid() = user_id. Anonymous guests count as
+-- authenticated, so the same policies cover /demo.
 create schema if not exists weather;
 comment on schema weather is 'Weather Dashboard App (JoshuaMColon/Weather_Dashboard_App). Separate from the blog.';
 revoke all on schema weather from public, anon;
@@ -26,7 +29,8 @@ create table weather.user_preferences (
   updated_at timestamptz not null default now()
 );
 
--- Keep any one account from filling the table (guests included).
+-- Cap lives here, not in the client. 25 cities per account, guests included.
+-- The 26th insert raises check_violation.
 create or replace function weather.enforce_location_limit()
 returns trigger language plpgsql security invoker set search_path = '' as $$
 begin
@@ -47,7 +51,8 @@ create trigger user_preferences_touch before update on weather.user_preferences
 alter table weather.saved_locations enable row level security;
 alter table weather.user_preferences enable row level security;
 
--- Signed-in users, including anonymous guests from /demo, own their rows.
+-- Own rows only. (select auth.uid()) is evaluated once per query, not once per
+-- row. Guests are authenticated users; these policies don't special-case them.
 create policy "Users read own saved locations" on weather.saved_locations
   for select to authenticated using ((select auth.uid()) = user_id);
 create policy "Users add own saved locations" on weather.saved_locations
@@ -71,6 +76,8 @@ grant select, insert, update, delete on weather.saved_locations, weather.user_pr
 grant all on weather.saved_locations, weather.user_preferences to service_role;
 revoke all on function weather.enforce_location_limit(), weather.touch_updated_at() from public, anon;
 
--- Realtime sync of saved cities across tabs/devices (RLS still applies).
+-- Realtime is on the table, not the view the client writes through. replica
+-- identity full so UPDATE and DELETE events still carry user_id for the filter.
+-- RLS still decides who receives the event.
 alter table weather.saved_locations replica identity full;
 alter publication supabase_realtime add table weather.saved_locations;
